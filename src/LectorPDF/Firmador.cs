@@ -1,0 +1,125 @@
+﻿using System.Security.Cryptography;
+using System.Security.Cryptography.X509Certificates;
+using iText.Bouncycastle.X509;
+using iText.Commons.Bouncycastle.Cert;
+using iText.Forms.Fields;
+using iText.Forms.Form.Element;
+using iText.Kernel.Crypto;
+using iText.Kernel.Pdf;
+using iText.Signatures;
+using Org.BouncyCastle.X509;
+using Rectangle = iText.Kernel.Geom.Rectangle;
+
+namespace LectorPDF;
+
+/// <summary>
+/// Firma PAdES (CAdES desprendida, SHA-256) aÃ±adida al final del PDF, sin reescribirlo: las firmas
+/// que ya tuviera siguen valiendo. Con sello de tiempo si el servidor de sellado contesta.
+/// </summary>
+static class Firmador
+{
+    const string ServidorSellado = "http://timestamp.digicert.com";
+
+    public sealed record Resultado(byte[] Pdf, string? Aviso);
+
+    public static Resultado Firmar(byte[] pdf, X509Certificate2 cert, int pagina, float[]? rect)
+    {
+        var cadena = Cadena(cert);
+        var firma = new FirmaWindows(cert);
+        string campo = NombreLibre(pdf);
+        try
+        {
+            return new(Una(pdf, firma, cadena, campo, pagina, rect, new TSAClientBouncyCastle(ServidorSellado)), null);
+        }
+        catch (Exception ex) when (EsDelSellado(ex))
+        {
+            return new(Una(pdf, firma, cadena, campo, pagina, rect, null),
+                "Firmado sin sello de tiempo: no se ha podido contactar con el servidor de sellado.");
+        }
+    }
+
+    static byte[] Una(byte[] pdf, FirmaWindows firma, IX509Certificate[] cadena, string campo, int pagina, float[]? rect, ITSAClient? sellado)
+    {
+        var lector = new PdfReader(new MemoryStream(pdf)).SetUnethicalReading(true);
+        var salida = new MemoryStream();
+        var firmante = new PdfSigner(lector, salida, new StampingProperties().UseAppendMode());
+
+        string nombre = NombreComun(firma.Certificado);
+        var props = new SignerProperties()
+            .SetFieldName(campo)
+            .SetSignatureCreator("Lector PDF")
+            .SetClaimedSignDate(DateTime.Now);
+
+        if (rect is [var x1, var y1, var x2, var y2])
+        {
+            var apariencia = new SignatureFieldAppearance(SignerProperties.IGNORED_ID)
+                .SetContent($"Firmado digitalmente por:\n{nombre}\nFecha: {DateTime.Now:dd/MM/yyyy HH:mm:ss}");
+            props.SetPageNumber(pagina)
+                 .SetPageRect(new Rectangle(Math.Min(x1, x2), Math.Min(y1, y2), Math.Abs(x2 - x1), Math.Abs(y2 - y1)))
+                 .SetSignatureAppearance(apariencia);
+        }
+        else
+        {
+            props.SetPageNumber(1).SetPageRect(new Rectangle(0, 0, 0, 0)); // firma invisible
+        }
+
+        firmante.SetSignerProperties(props);
+        firmante.SignDetached(new BouncyCastleDigest(), firma, cadena, null, null, sellado, 0, PdfSigner.CryptoStandard.CADES);
+        return salida.ToArray();
+    }
+
+    static bool EsDelSellado(Exception ex)
+    {
+        for (var e = ex; e is not null; e = e.InnerException)
+            if (e is System.Net.WebException or HttpRequestException or IOException or TimeoutException ||
+                e.GetType().Name.Contains("Tsa", StringComparison.OrdinalIgnoreCase) ||
+                e.Message.Contains("timestamp", StringComparison.OrdinalIgnoreCase) ||
+                e.Message.Contains("TSA", StringComparison.Ordinal))
+                return true;
+        return false;
+    }
+
+    /// <summary>Firma1, Firma2â€¦ el primero que no estÃ© ya en el formulario.</summary>
+    static string NombreLibre(byte[] pdf)
+    {
+        using var doc = new PdfDocument(new PdfReader(new MemoryStream(pdf)).SetUnethicalReading(true));
+        var form = PdfFormCreator.GetAcroForm(doc, false);
+        var usados = form?.GetAllFormFields().Keys.ToHashSet(StringComparer.OrdinalIgnoreCase) ?? [];
+        for (int i = 1; ; i++)
+            if (!usados.Contains("Firma" + i)) return "Firma" + i;
+    }
+
+    /// <summary>El certificado y los de su emisor que se encuentren, para meterlos en la firma.</summary>
+    static IX509Certificate[] Cadena(X509Certificate2 cert)
+    {
+        using var ch = new X509Chain();
+        ch.ChainPolicy.RevocationMode = X509RevocationMode.NoCheck;
+        ch.ChainPolicy.VerificationFlags = X509VerificationFlags.AllFlags;
+        ch.Build(cert);
+        var lista = ch.ChainElements.Select(e => e.Certificate).ToList();
+        if (lista.Count == 0 || lista[0].Thumbprint != cert.Thumbprint) lista.Insert(0, cert);
+        var parser = new X509CertificateParser();
+        return lista.Select(c => (IX509Certificate)new X509CertificateBC(parser.ReadCertificate(c.RawData))).ToArray();
+    }
+
+    public static string NombreComun(X509Certificate2 c) => c.GetNameInfo(X509NameType.SimpleName, false);
+
+    /// <summary>Firma con la clave del certificado tal como la tenga Windows (tambiÃ©n tarjetas: pide el PIN).</summary>
+    sealed class FirmaWindows(X509Certificate2 cert) : IExternalSignature
+    {
+        public X509Certificate2 Certificado => cert;
+        readonly RSA? rsa = cert.GetRSAPrivateKey();
+        readonly ECDsa? ec = cert.GetECDsaPrivateKey();
+
+        public string GetDigestAlgorithmName() => DigestAlgorithms.SHA256;
+        public string GetSignatureAlgorithmName() => rsa is not null ? "RSA" : "ECDSA";
+        public ISignatureMechanismParams? GetSignatureMechanismParameters() => null;
+
+        public byte[] Sign(byte[] mensaje)
+        {
+            if (rsa is not null) return rsa.SignData(mensaje, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
+            if (ec is not null) return ec.SignData(mensaje, HashAlgorithmName.SHA256, DSASignatureFormat.Rfc3279DerSequence);
+            throw new CryptographicException("El certificado no tiene una clave RSA ni ECDSA utilizable.");
+        }
+    }
+}

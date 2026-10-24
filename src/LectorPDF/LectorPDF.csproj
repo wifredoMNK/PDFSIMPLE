@@ -1,0 +1,35 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <UseWindowsForms>true</UseWindowsForms>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <AssemblyName>LectorPDF</AssemblyName>
+    <RootNamespace>LectorPDF</RootNamespace>
+    <ApplicationIcon>lector.ico</ApplicationIcon>
+    <ApplicationHighDpiMode>PerMonitorV2</ApplicationHighDpiMode>
+    <SatelliteResourceLanguages>es</SatelliteResourceLanguages>
+    <Version>1.0.0</Version>
+    <Product>Lector PDF</Product>
+    <!-- WebView2 trae también su DLL de WPF, que aquí no se usa -->
+    <MSBuildWarningsAsMessages>MSB3277</MSBuildWarningsAsMessages>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.4314.35" />
+    <PackageReference Include="itext" Version="9.8.0" />
+    <PackageReference Include="itext.bouncy-castle-adapter" Version="9.8.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="Pruebas" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="web\**\*" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="lector.ico" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+</Project>

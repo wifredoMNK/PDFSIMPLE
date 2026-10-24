@@ -1,0 +1,5 @@
+﻿bin/
+obj/
+pruebas/salida/
+*.user
+.vs/
