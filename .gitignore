@@ -3,3 +3,5 @@ obj/
 pruebas/salida/
 *.user
 .vs/
+dist/
+/*.exe

@@ -1,6 +1,6 @@
 "use strict";
 /*
- * Lo que el Lector PDF añade al visor de pdf.js. Se carga antes que viewer.mjs (lo inyecta
+ * Lo que PDFbyWilly añade al visor de pdf.js. Se carga antes que viewer.mjs (lo inyecta
  * Ventana.cs al servir viewer.html), así que puede fijar las opciones en «webviewerloaded».
  * Todo lo que necesita disco o certificados se pide al programa con fetch("/api/…").
  */
@@ -18,7 +18,7 @@
   // ------------------------------------------------------------ avisos
 
   let temporizador = null;
-  function aviso(texto, error) {
+  function aviso(texto, error, ms) {
     let el = document.getElementById("lectorAviso");
     if (!el) {
       el = document.createElement("div");
@@ -30,7 +30,7 @@
     el.classList.toggle("error", !!error);
     el.classList.add("visible");
     clearTimeout(temporizador);
-    temporizador = setTimeout(() => el.classList.remove("visible"), error ? 9000 : 4000);
+    temporizador = setTimeout(() => el.classList.remove("visible"), ms ?? (error ? 9000 : 4000));
   }
 
   // ------------------------------------------------------------ verificación de firmas
@@ -132,6 +132,25 @@
       guardar(true);
     });
     menuAbrir?.after(como);
+
+    // Al final del menú: dejarlo como programa para abrir los PDF.
+    const pred = document.createElement("button");
+    pred.id = "lectorPredeterminado";
+    pred.className = "toolbarButton labeled";
+    pred.type = "button";
+    const sp = document.createElement("span");
+    sp.textContent = "Abrir siempre los PDF con PDFbyWilly…";
+    pred.append(sp);
+    pred.addEventListener("click", () => {
+      document.getElementById("secondaryToolbar")?.classList.add("hidden");
+      api("predeterminado")
+        .then(r => r.ok && aviso("En Configuración: escribe .pdf en el buscador de arriba, pulsa la casilla que sale debajo, elige PDFbyWilly y «Establecer predeterminado».", false, 30000))
+        .catch(e => aviso(e.message, true));
+    });
+    const menu = document.getElementById("secondaryToolbarButtonContainer");
+    const sep = document.createElement("div");
+    sep.className = "horizontalToolbarSeparator";
+    menu?.append(sep, pred);
   }
 
   // ------------------------------------------------------------ abrir / guardar
@@ -367,5 +386,6 @@
     hayCambios: () => !!app?.pdfDocument && !!app._annotationStorageModified,
     guardar,
     recargar,
+    aviso: (texto, ms) => aviso(texto, false, ms),
   };
 })();

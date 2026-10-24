@@ -1,4 +1,4 @@
-/* Lo que el Lector PDF añade al aspecto de pdf.js. */
+/* Lo que PDFbyWilly añade al aspecto de pdf.js. */
 
 #lectorAbrir::before {
   -webkit-mask-image: url(../pdfjs/web/images/toolbarButton-openFile.svg);
@@ -14,6 +14,11 @@
 #lectorFirmar::before {
   -webkit-mask-image: url(firmar.svg);
           mask-image: url(firmar.svg);
+}
+
+#lectorPredeterminado::before {
+  -webkit-mask-image: url(../pdfjs/web/images/toolbarButton-openFile.svg);
+          mask-image: url(../pdfjs/web/images/toolbarButton-openFile.svg);
 }
 
 #lectorGuardarComo::before {

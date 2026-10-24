@@ -1,4 +1,4 @@
-﻿using System.Security.Cryptography;
+using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using iText.Bouncycastle.X509;
 using iText.Commons.Bouncycastle.Cert;
@@ -10,7 +10,7 @@ using iText.Signatures;
 using Org.BouncyCastle.X509;
 using Rectangle = iText.Kernel.Geom.Rectangle;
 
-namespace LectorPDF;
+namespace PDFbyWilly;
 
 /// <summary>
 /// Firma PAdES (CAdES desprendida, SHA-256) aÃ±adida al final del PDF, sin reescribirlo: las firmas
@@ -47,7 +47,7 @@ static class Firmador
         string nombre = NombreComun(firma.Certificado);
         var props = new SignerProperties()
             .SetFieldName(campo)
-            .SetSignatureCreator("Lector PDF")
+            .SetSignatureCreator("PDFbyWilly")
             .SetClaimedSignDate(DateTime.Now);
 
         if (rect is [var x1, var y1, var x2, var y2])

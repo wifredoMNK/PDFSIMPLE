@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
@@ -6,13 +6,16 @@
     <UseWindowsForms>true</UseWindowsForms>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <AssemblyName>LectorPDF</AssemblyName>
-    <RootNamespace>LectorPDF</RootNamespace>
-    <ApplicationIcon>lector.ico</ApplicationIcon>
+    <AssemblyName>PDFbyWilly</AssemblyName>
+    <RootNamespace>PDFbyWilly</RootNamespace>
+    <ApplicationIcon>PDFbyWilly.ico</ApplicationIcon>
     <ApplicationHighDpiMode>PerMonitorV2</ApplicationHighDpiMode>
     <SatelliteResourceLanguages>es</SatelliteResourceLanguages>
     <Version>1.0.0</Version>
-    <Product>Lector PDF</Product>
+    <Product>PDFbyWilly</Product>
+    <AssemblyTitle>PDFbyWilly</AssemblyTitle>
+    <Description>Lector de PDF sin publicidad: formularios, texto y firma digital</Description>
+    <Copyright>Willy</Copyright>
     <!-- WebView2 trae también su DLL de WPF, que aquí no se usa -->
     <MSBuildWarningsAsMessages>MSB3277</MSBuildWarningsAsMessages>
   </PropertyGroup>
@@ -28,8 +31,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Content Include="web\**\*" CopyToOutputDirectory="PreserveNewest" />
-    <Content Include="lector.ico" CopyToOutputDirectory="PreserveNewest" />
+    <!-- Todo va dentro del .exe: el visor se sirve desde los recursos (Recursos.cs) -->
+    <EmbeddedResource Include="web\**\*" LogicalName="web/%(RecursiveDir)%(Filename)%(Extension)" />
+    <EmbeddedResource Include="PDFbyWilly.ico" LogicalName="PDFbyWilly.ico" />
   </ItemGroup>
 
 </Project>

@@ -5,7 +5,7 @@ using System.Text.Json.Nodes;
 using Microsoft.Web.WebView2.Core;
 using Microsoft.Web.WebView2.WinForms;
 
-namespace LectorPDF;
+namespace PDFbyWilly;
 
 /// <summary>
 /// Una ventana por documento. Dentro va el visor de pdf.js (carpeta web/pdfjs), servido desde
@@ -18,17 +18,19 @@ sealed class Ventana : Form
     const string Visor = Origen + "pdfjs/web/viewer.html";
 
     readonly WebView2 web = new() { Dock = DockStyle.Fill };
-    readonly string carpetaWeb = Path.Combine(AppContext.BaseDirectory, "web");
 
     string? ruta;          // archivo abierto
     byte[]? datos;         // su contenido tal como se cargó
     int version;           // cambia en cada carga para que el visor no tire de caché
     bool cerrarYa;
 
-    public Ventana(string? ruta)
+    readonly bool avisoAnclar;
+
+    public Ventana(string? ruta, bool avisoAnclar = false)
     {
-        Text = "Lector PDF";
-        Icon = new Icon(Path.Combine(AppContext.BaseDirectory, "lector.ico"));
+        this.avisoAnclar = avisoAnclar;
+        Text = "PDFbyWilly";
+        Icon = Recursos.Icono();
         KeyPreview = true;
         Ajustes.Actual.AplicarA(this);
         Controls.Add(web);
@@ -59,6 +61,10 @@ sealed class Ventana : Form
             if (!e.Uri.StartsWith(Origen, StringComparison.OrdinalIgnoreCase)) { e.Cancel = true; AbrirFuera(e.Uri); }
         };
         cw.ContainsFullScreenElementChanged += (_, _) => PantallaCompleta(cw.ContainsFullScreenElement);
+        if (avisoAnclar)
+            // Windows no deja anclar por programa: recién instalado, se le dice al usuario dónde hacer clic.
+            cw.NavigationCompleted += async (_, _) => await cw.ExecuteScriptAsync(
+                "lector.aviso('Para anclar PDFbyWilly: clic derecho en su icono de la barra de tareas (abajo) → «Anclar a la barra de tareas».', 30000)");
         cw.Navigate(Visor);
     }
 
@@ -97,7 +103,7 @@ sealed class Ventana : Form
         }
         ruta = archivo;
         version++;
-        Text = $"{Path.GetFileName(archivo)} — Lector PDF";
+        Text = $"{Path.GetFileName(archivo)} — PDFbyWilly";
         Ajustes.Actual.AnotarReciente(archivo);
     }
 
@@ -146,7 +152,7 @@ sealed class Ventana : Form
         string r = await web.CoreWebView2.ExecuteScriptAsync("window.lector ? lector.hayCambios() : false");
         if (r != "true") { cerrarYa = true; Close(); return; }
 
-        var resp = MessageBox.Show(this, $"¿Guardar los cambios en {Path.GetFileName(ruta)}?", "Lector PDF",
+        var resp = MessageBox.Show(this, $"¿Guardar los cambios en {Path.GetFileName(ruta)}?", "PDFbyWilly",
             MessageBoxButtons.YesNoCancel, MessageBoxIcon.Question);
         if (resp == DialogResult.Cancel) return;
         if (resp == DialogResult.No) { cerrarYa = true; Close(); return; }
@@ -202,13 +208,12 @@ sealed class Ventana : Form
             return;
         }
 
-        string archivo = Path.GetFullPath(Path.Combine(carpetaWeb, camino));
-        if (!archivo.StartsWith(carpetaWeb, StringComparison.OrdinalIgnoreCase) || !File.Exists(archivo))
+        byte[]? contenido = Recursos.Leer("web/" + camino);
+        if (contenido is null)
         {
             e.Response = Respuesta(404, "text/plain", Array.Empty<byte>());
             return;
         }
-        byte[] contenido = File.ReadAllBytes(archivo);
         if (camino == "pdfjs/web/viewer.html")
         {
             // Se engancha lo nuestro sin tocar el viewer.html de pdf.js, para poder actualizarlo tal cual.
@@ -219,9 +224,9 @@ sealed class Ventana : Form
         }
         else if (camino == "pdfjs/web/locale/es-ES/viewer.ftl")
         {
-            contenido = [.. contenido, .. File.ReadAllBytes(Path.Combine(carpetaWeb, "lector", "es-ES.ftl"))];
+            contenido = [.. contenido, .. Recursos.Leer("web/lector/es-ES.ftl")!];
         }
-        e.Response = Respuesta(200, TipoDe(archivo), contenido);
+        e.Response = Respuesta(200, TipoDe(camino), contenido);
     }
 
     async Task<object> Api(string metodo, byte[] cuerpo, string? arg)
@@ -301,6 +306,13 @@ sealed class Ventana : Form
                 System.Security.Cryptography.X509Certificates.X509Certificate2UI.DisplayCertificate(c, Handle);
                 return new { ok = true };
             }
+
+            case "predeterminado":
+                // Instalado de antes o ahora mismo, y a la página de Windows donde se elige para .pdf.
+                if (!Instalacion.EsLaInstalada && Instalacion.HaceFalta() && !Instalacion.Instalar(null))
+                    return new { cancelado = true };
+                Instalacion.AbrirPredeterminadas();
+                return new { ok = true };
 
             case "cerrar":
                 cerrarYa = true;

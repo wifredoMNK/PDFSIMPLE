@@ -1,7 +1,7 @@
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 
-namespace LectorPDF;
+namespace PDFbyWilly;
 
 /// <summary>
 /// Elige el certificado con que firmar: los personales instalados en Windows (donde van el de la

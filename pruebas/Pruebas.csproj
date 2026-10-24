@@ -11,7 +11,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\src\LectorPDF\LectorPDF.csproj" />
+    <ProjectReference Include="..\src\PDFbyWilly\PDFbyWilly.csproj" />
   </ItemGroup>
 
 </Project>

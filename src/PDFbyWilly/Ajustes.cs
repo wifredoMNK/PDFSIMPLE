@@ -1,14 +1,15 @@
 using System.Text.Json;
 
-namespace LectorPDF;
+namespace PDFbyWilly;
 
-/// <summary>Lo que se recuerda entre sesiones, en %LOCALAPPDATA%\LectorPDF\ajustes.json.</summary>
+/// <summary>Lo que se recuerda entre sesiones, en %LOCALAPPDATA%\PDFbyWilly\ajustes.json.</summary>
 sealed class Ajustes
 {
     public int[]? Ventana { get; set; }          // x, y, ancho, alto
     public bool Maximizada { get; set; }
     public string? Carpeta { get; set; }         // la del último documento abierto
     public string? Certificado { get; set; }     // huella del último certificado con que se firmó
+    public bool NoInstalar { get; set; }         // dijo que no a instalarlo: no se vuelve a preguntar
 
     static readonly string Archivo = Path.Combine(CarpetaDatos(), "ajustes.json");
     static Ajustes? actual;
@@ -17,7 +18,7 @@ sealed class Ajustes
 
     public static string CarpetaDatos(string? sub = null)
     {
-        string d = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "LectorPDF");
+        string d = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "PDFbyWilly");
         if (sub is not null) d = Path.Combine(d, sub);
         Directory.CreateDirectory(d);
         return d;
@@ -35,7 +36,8 @@ sealed class Ajustes
         {
             // Con varias ventanas abiertas se relee antes para no pisar lo que haya dejado otra.
             var disco = Leer();
-            disco.Ventana = Ventana; disco.Maximizada = Maximizada;
+            if (Ventana is not null) { disco.Ventana = Ventana; disco.Maximizada = Maximizada; }
+            disco.NoInstalar |= NoInstalar;
             disco.Carpeta = Carpeta ?? disco.Carpeta;
             disco.Certificado = Certificado ?? disco.Certificado;
             File.WriteAllText(Archivo, JsonSerializer.Serialize(disco));
@@ -45,7 +47,7 @@ sealed class Ajustes
 
     public void AplicarA(Form f)
     {
-        f.StartPosition = FormStartPosition.WindowsDefaultLocation;
+        f.StartPosition = FormStartPosition.CenterScreen;
         var pantalla = Screen.PrimaryScreen!.WorkingArea;
         var tamaño = f.LogicalToDeviceUnits(new Size(1100, 850));
         f.Size = new Size(Math.Min(tamaño.Width, pantalla.Width * 9 / 10), Math.Min(tamaño.Height, pantalla.Height * 9 / 10));
@@ -54,6 +56,12 @@ sealed class Ajustes
             var r = new Rectangle(x, y, w, h);
             if (Screen.AllScreens.Any(s => s.WorkingArea.IntersectsWith(r)))
             {
+                // Que no se meta debajo de la barra de tareas ni se salga de la pantalla.
+                var zona = Screen.FromRectangle(r).WorkingArea;
+                r.Width = Math.Min(r.Width, zona.Width);
+                r.Height = Math.Min(r.Height, zona.Height);
+                r.X = Math.Clamp(r.X, zona.Left, zona.Right - r.Width);
+                r.Y = Math.Clamp(r.Y, zona.Top, zona.Bottom - r.Height);
                 f.StartPosition = FormStartPosition.Manual;
                 f.Bounds = r;
             }

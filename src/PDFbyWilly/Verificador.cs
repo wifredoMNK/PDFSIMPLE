@@ -3,7 +3,7 @@ using System.Security.Cryptography;
 using System.Security.Cryptography.Pkcs;
 using System.Security.Cryptography.X509Certificates;
 
-namespace LectorPDF;
+namespace PDFbyWilly;
 
 /// <summary>
 /// Comprueba una firma de un PDF para el panel de firmas de pdf.js: que el contenido firmado no ha
