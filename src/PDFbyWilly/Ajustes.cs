@@ -2,7 +2,7 @@ using System.Text.Json;
 
 namespace PDFbyWilly;
 
-/// <summary>Lo que se recuerda entre sesiones, en %LOCALAPPDATA%\PDFbyWilly\ajustes.json.</summary>
+/// <summary>Lo que se recuerda entre sesiones, en %LOCALAPPDATA%\<marca>\ajustes.json.</summary>
 sealed class Ajustes
 {
     public int[]? Ventana { get; set; }          // x, y, ancho, alto
@@ -17,7 +17,7 @@ sealed class Ajustes
 
     public static string CarpetaDatos(string? sub = null)
     {
-        string d = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "PDFbyWilly");
+        string d = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), Marca.Nombre);
         if (sub is not null) d = Path.Combine(d, sub);
         Directory.CreateDirectory(d);
         return d;

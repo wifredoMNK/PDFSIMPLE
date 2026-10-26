@@ -6,14 +6,19 @@
     <UseWindowsForms>true</UseWindowsForms>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <AssemblyName>PDFbyWilly</AssemblyName>
+    <!-- El nombre del programa: PDFbyWilly (instalador propio) o PDFSIMPLE (Microsoft Store, -p:Marca=PDFSIMPLE).
+         Cambia el .exe, el título, el icono (iconos\<Marca>.ico), la carpeta de ajustes y el registro (Marca.cs). -->
+    <Marca Condition="'$(Marca)' == ''">PDFbyWilly</Marca>
+    <AssemblyName>$(Marca)</AssemblyName>
+    <!-- PDFSIMPLE se compila con obj y bin fuera (store\obj): que no recoja los de aquí -->
+    <DefaultItemExcludes>$(DefaultItemExcludes);obj\**;bin\**</DefaultItemExcludes>
     <RootNamespace>PDFbyWilly</RootNamespace>
-    <ApplicationIcon>PDFbyWilly.ico</ApplicationIcon>
+    <ApplicationIcon>iconos\$(Marca).ico</ApplicationIcon>
     <ApplicationHighDpiMode>PerMonitorV2</ApplicationHighDpiMode>
     <SatelliteResourceLanguages>es</SatelliteResourceLanguages>
     <Version>1.0.0</Version>
-    <Product>PDFbyWilly</Product>
-    <AssemblyTitle>PDFbyWilly</AssemblyTitle>
+    <Product>$(Marca)</Product>
+    <AssemblyTitle>$(Marca)</AssemblyTitle>
     <Description>Lector de PDF sin publicidad: formularios, texto y firma digital</Description>
     <Copyright>Willy</Copyright>
     <!-- WebView2 trae también su DLL de WPF, que aquí no se usa -->
@@ -33,7 +38,7 @@
   <ItemGroup>
     <!-- Todo va dentro del .exe: el visor se sirve desde los recursos (Recursos.cs) -->
     <EmbeddedResource Include="web\**\*" LogicalName="web/%(RecursiveDir)%(Filename)%(Extension)" />
-    <EmbeddedResource Include="PDFbyWilly.ico" LogicalName="PDFbyWilly.ico" />
+    <EmbeddedResource Include="iconos\$(Marca).ico" LogicalName="icono.ico" />
   </ItemGroup>
 
 </Project>

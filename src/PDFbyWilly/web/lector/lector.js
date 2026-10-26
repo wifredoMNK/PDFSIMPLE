@@ -1,11 +1,13 @@
 "use strict";
 /*
- * Lo que PDFbyWilly añade al visor de pdf.js. Se carga antes que viewer.mjs (lo inyecta
+ * Lo que PDFbyWilly / PDFSIMPLE añade al visor de pdf.js. Se carga antes que viewer.mjs (lo inyecta
  * Ventana.cs al servir viewer.html), así que puede fijar las opciones en «webviewerloaded».
  * Todo lo que necesita disco o certificados se pide al programa con fetch("/api/…").
  */
 (function () {
   let app = null;
+  // El nombre del programa (PDFbyWilly o PDFSIMPLE): lo pone Ventana.cs en una <meta> al servir viewer.html.
+  const APP = document.querySelector("meta[name=lector-app]")?.content || "PDFbyWilly";
 
   async function api(metodo, cuerpo, args) {
     const cabeceras = args ? { "X-Args": encodeURIComponent(JSON.stringify(args)) } : {};
@@ -139,12 +141,12 @@
     pred.className = "toolbarButton labeled";
     pred.type = "button";
     const sp = document.createElement("span");
-    sp.textContent = "Abrir siempre los PDF con PDFbyWilly…";
+    sp.textContent = "Abrir siempre los PDF con " + APP + "…";
     pred.append(sp);
     pred.addEventListener("click", () => {
       document.getElementById("secondaryToolbar")?.classList.add("hidden");
       api("predeterminado")
-        .then(r => r.ok && aviso("En Configuración: escribe .pdf en el buscador de arriba, pulsa la casilla que sale debajo, elige PDFbyWilly y «Establecer predeterminado».", false, 30000))
+        .then(r => r.ok && aviso("En Configuración: escribe .pdf en el buscador de arriba, pulsa la casilla que sale debajo, elige " + APP + " y «Establecer predeterminado».", false, 30000))
         .catch(e => aviso(e.message, true));
     });
     const menu = document.getElementById("secondaryToolbarButtonContainer");

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  Manifiesto del paquete de la Microsoft Store. Lo que va entre {{ }} lo pone store\empaquetar.ps1:
+  Manifiesto del paquete de la Microsoft Store, donde el programa se llama PDFSIMPLE. Lo que va entre {{ }} lo pone store\empaquetar.ps1:
   la identidad sale de store\identidad.json (Partner Center → el producto → Identidad del producto).
 -->
 <Package
@@ -12,7 +12,7 @@
   <Identity Name="{{Nombre}}" Publisher="{{Editor}}" Version="{{Version}}" ProcessorArchitecture="{{Arquitectura}}" />
 
   <Properties>
-    <DisplayName>PDFbyWilly</DisplayName>
+    <DisplayName>PDFSIMPLE</DisplayName>
     <PublisherDisplayName>{{EditorVisible}}</PublisherDisplayName>
     <Logo>Assets\StoreLogo.png</Logo>
     <Description>Lector de PDF sin publicidad: formularios, escribir a máquina, firma manuscrita y firma digital con certificado.</Description>
@@ -27,9 +27,9 @@
   </Resources>
 
   <Applications>
-    <Application Id="PDFbyWilly" Executable="PDFbyWilly.exe" EntryPoint="Windows.FullTrustApplication">
+    <Application Id="PDFSIMPLE" Executable="PDFSIMPLE.exe" EntryPoint="Windows.FullTrustApplication">
       <uap:VisualElements
-        DisplayName="PDFbyWilly"
+        DisplayName="PDFSIMPLE"
         Description="Lector de PDF sin publicidad: formularios, texto y firma digital"
         BackgroundColor="transparent"
         Square150x150Logo="Assets\Square150x150Logo.png"

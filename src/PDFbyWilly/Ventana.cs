@@ -26,7 +26,7 @@ sealed class Ventana : Form
 
     public Ventana(string? ruta)
     {
-        Text = "PDFbyWilly";
+        Text = Marca.Nombre;
         Icon = Recursos.Icono();
         KeyPreview = true;
         Ajustes.Actual.AplicarA(this);
@@ -96,7 +96,7 @@ sealed class Ventana : Form
         }
         ruta = archivo;
         version++;
-        Text = $"{Path.GetFileName(archivo)} — PDFbyWilly";
+        Text = $"{Path.GetFileName(archivo)} — {Marca.Nombre}";
         Ajustes.Actual.AnotarReciente(archivo);
     }
 
@@ -145,7 +145,7 @@ sealed class Ventana : Form
         string r = await web.CoreWebView2.ExecuteScriptAsync("window.lector ? lector.hayCambios() : false");
         if (r != "true") { cerrarYa = true; Close(); return; }
 
-        var resp = MessageBox.Show(this, $"¿Guardar los cambios en {Path.GetFileName(ruta)}?", "PDFbyWilly",
+        var resp = MessageBox.Show(this, $"¿Guardar los cambios en {Path.GetFileName(ruta)}?", Marca.Nombre,
             MessageBoxButtons.YesNoCancel, MessageBoxIcon.Question);
         if (resp == DialogResult.Cancel) return;
         if (resp == DialogResult.No) { cerrarYa = true; Close(); return; }
@@ -212,7 +212,7 @@ sealed class Ventana : Form
             // Se engancha lo nuestro sin tocar el viewer.html de pdf.js, para poder actualizarlo tal cual.
             string html = Encoding.UTF8.GetString(contenido).Replace(
                 "<script src=\"viewer.mjs\" type=\"module\"></script>",
-                "<link rel=\"stylesheet\" href=\"../../lector/lector.css\" />\n  <script src=\"../../lector/lector.js\"></script>\n  <script src=\"viewer.mjs\" type=\"module\"></script>");
+                $"<meta name=\"lector-app\" content=\"{Marca.Nombre}\" />\n  <link rel=\"stylesheet\" href=\"../../lector/lector.css\" />\n  <script src=\"../../lector/lector.js\"></script>\n  <script src=\"viewer.mjs\" type=\"module\"></script>");
             contenido = Encoding.UTF8.GetBytes(html);
         }
         else if (camino == "pdfjs/web/locale/es-ES/viewer.ftl")

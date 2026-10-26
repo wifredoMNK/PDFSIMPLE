@@ -47,7 +47,7 @@ static class Firmador
         string nombre = NombreComun(firma.Certificado);
         var props = new SignerProperties()
             .SetFieldName(campo)
-            .SetSignatureCreator("PDFbyWilly")
+            .SetSignatureCreator(Marca.Nombre)
             .SetClaimedSignDate(DateTime.Now);
 
         if (rect is [var x1, var y1, var x2, var y2])

@@ -14,10 +14,10 @@ namespace PDFbyWilly;
 /// </summary>
 static class Instalacion
 {
-    public const string Nombre = "PDFbyWilly";
-    const string ProgId = "PDFbyWilly.Documento";
+    public static readonly string Nombre = Marca.Nombre;
+    static readonly string ProgId = Nombre + ".Documento";
     const string Descripcion = "Lector de PDF sin publicidad: formularios, texto y firma digital";
-    const string ClaveDesinstalar = @"Software\Microsoft\Windows\CurrentVersion\Uninstall\PDFbyWilly";
+    static readonly string ClaveDesinstalar = @"Software\Microsoft\Windows\CurrentVersion\Uninstall\" + Nombre;
 
     static string Exe => Environment.ProcessPath!;
     static string Carpeta => Path.GetDirectoryName(Exe)!;
@@ -58,7 +58,7 @@ static class Instalacion
             k.CreateSubKey("SupportedTypes").SetValue(".pdf", "");
         }
 
-        using (var k = hklm.CreateSubKey(@"Software\PDFbyWilly\Capabilities"))
+        using (var k = hklm.CreateSubKey($@"Software\{Nombre}\Capabilities"))
         {
             k.SetValue("ApplicationName", Nombre);
             k.SetValue("ApplicationDescription", Descripcion);
@@ -66,7 +66,7 @@ static class Instalacion
             k.CreateSubKey("FileAssociations").SetValue(".pdf", ProgId);
         }
         using (var k = hklm.CreateSubKey(@"Software\RegisteredApplications"))
-            k.SetValue(Nombre, @"Software\PDFbyWilly\Capabilities");
+            k.SetValue(Nombre, $@"Software\{Nombre}\Capabilities");
 
         using (var k = hklm.CreateSubKey(ClaveDesinstalar))
         {
@@ -104,7 +104,7 @@ static class Instalacion
         using (var k = hklm.OpenSubKey(@"Software\Classes\.pdf\OpenWithProgids", true))
             k?.DeleteValue(ProgId, false);
         hklm.DeleteSubKeyTree($@"Software\Classes\Applications\{Nombre}.exe", false);
-        hklm.DeleteSubKeyTree(@"Software\PDFbyWilly", false);
+        hklm.DeleteSubKeyTree($@"Software\{Nombre}", false);
         using (var k = hklm.OpenSubKey(@"Software\RegisteredApplications", true))
             k?.DeleteValue(Nombre, false);
         hklm.DeleteSubKeyTree(ClaveDesinstalar, false);
@@ -128,7 +128,7 @@ static class Instalacion
         using (var k = hkcu.OpenSubKey(@"Software\Classes\.pdf\OpenWithProgids", true))
             k?.DeleteValue(ProgId, false);
         hkcu.DeleteSubKeyTree($@"Software\Classes\Applications\{Nombre}.exe", false);
-        hkcu.DeleteSubKeyTree(@"Software\PDFbyWilly", false);
+        hkcu.DeleteSubKeyTree($@"Software\{Nombre}", false);
         using (var k = hkcu.OpenSubKey(@"Software\RegisteredApplications", true))
             k?.DeleteValue(Nombre, false);
         hkcu.DeleteSubKeyTree(ClaveDesinstalar, false);
@@ -141,7 +141,7 @@ static class Instalacion
 
     /// <summary>
     /// Windows no deja que un programa se ponga solo como predeterminado: se abre su página de
-    /// Aplicaciones predeterminadas y el usuario elige PDFbyWilly para «.pdf» (se le dice cómo).
+    /// Aplicaciones predeterminadas y el usuario elige el programa para «.pdf» (se le dice cómo).
     /// </summary>
     public static void AbrirPredeterminadas()
     {
@@ -151,8 +151,8 @@ static class Instalacion
         catch { Process.Start(new ProcessStartInfo("ms-settings:defaultapps") { UseShellExecute = true }); }
     }
 
-    public const string ComoPredeterminado =
-        "En Configuración: escribe .pdf en el buscador de arriba, pulsa la casilla que sale debajo, elige PDFbyWilly y «Establecer predeterminado».";
+    public static readonly string ComoPredeterminado =
+        $"En Configuración: escribe .pdf en el buscador de arriba, pulsa la casilla que sale debajo, elige {Nombre} y «Establecer predeterminado».";
 
     static bool EsAdministrador() => new WindowsPrincipal(WindowsIdentity.GetCurrent()).IsInRole(WindowsBuiltInRole.Administrator);
 

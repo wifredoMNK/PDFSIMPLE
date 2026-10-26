@@ -1,4 +1,8 @@
-# Publicar PDFbyWilly en la Microsoft Store
+# Publicar en la Microsoft Store como PDFSIMPLE
+
+En la Store el programa se llama **PDFSIMPLE** (icono «PDF / SIMPLE»). Es el mismo código que PDFbyWilly,
+compilado con `-p:Marca=PDFSIMPLE`: cambian el nombre del .exe, el título, el icono y la carpeta de ajustes.
+PDFbyWilly y su instalador siguen igual.
 
 La Store firma el programa: quien lo instale no ve el aviso de «editor desconocido», y Windows lo ofrece
 directamente para abrir los PDF. La cuenta de desarrollador es gratis para particulares.
@@ -12,7 +16,7 @@ directamente para abrir los PDF. La cuenta de desarrollador es gratis para parti
 ## 2. Reservar el nombre
 
 En [Partner Center](https://partner.microsoft.com/dashboard/apps-and-games/overview): **Nueva aplicación** →
-nombre **PDFbyWilly** → Reservar.
+nombre **PDFSIMPLE** → Reservar.
 
 Luego, en el producto: **Administración del producto → Identidad del producto**. Copia en `store\identidad.json`:
 
@@ -25,11 +29,10 @@ Luego, en el producto: **Administración del producto → Identidad del producto
 ## 3. Generar el paquete
 
 ```powershell
-.\publicar.ps1
 .\store\empaquetar.ps1
 ```
 
-Sale `dist\store\PDFbyWilly_1.0.0.0.msixbundle` (Intel/AMD y ARM dentro). Para cada envío nuevo hay que subir
+Sale `dist\store\PDFSIMPLE_1.0.0.0.msixbundle` (Intel/AMD y ARM dentro). Para cada envío nuevo hay que subir
 `Version` en `identidad.json` (1.0.1.0, 1.0.2.0…; el último número siempre 0).
 
 ## 4. Envío en Partner Center
@@ -42,7 +45,7 @@ Sale `dist\store\PDFbyWilly_1.0.0.0.msixbundle` (Intel/AMD y ARM dentro). Para c
 
 **Paquetes:** sube el `.msixbundle`. Pedirá justificar la capacidad **runFullTrust**:
 
-> PDFbyWilly es una aplicación de escritorio (WinForms con WebView2). Necesita confianza total para abrir y
+> PDFSIMPLE es una aplicación de escritorio (WinForms con WebView2). Necesita confianza total para abrir y
 > guardar los PDF que elige el usuario y para firmar con los certificados digitales instalados en Windows
 > (almacén de certificados personal y tarjetas como el DNI electrónico).
 
@@ -67,7 +70,7 @@ Sale `dist\store\PDFbyWilly_1.0.0.0.msixbundle` (Intel/AMD y ARM dentro). Para c
 ## Política de privacidad
 
 Publicada en <https://menork.es/politica-de-privacidad/>. El archivo está en el proyecto de la web:
-`Documentos\proyectos\Menork\public\politica-de-privacidad\index.html` (se sube con el resto de menork.es).
+`Documentos\proyectos\Menork\public\politica-de-privacidad\index.html`. Subida el 26/10/2026.
 
 ## Licencia
 

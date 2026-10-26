@@ -33,7 +33,8 @@ El instalador es .NET Framework 4.8 (ya viene con Windows 10 y 11) y el programa
 nada más (WebView2 viene con Windows; si faltara, el programa ofrece descargarlo). No están firmados con
 certificado de código, así que Windows puede avisar la primera vez («Más información» → «Ejecutar de todas formas»).
 
-**Microsoft Store** (firmado por Microsoft, sin avisos): ver [store/LEEME.md](store/LEEME.md); `store\empaquetar.ps1` genera el paquete.
+**Microsoft Store**: allí se llama **PDFSIMPLE** (mismo código, `-p:Marca=PDFSIMPLE`; ver `Marca.cs`). Firmado por
+Microsoft, sin avisos. Ver [store/LEEME.md](store/LEEME.md); `store\empaquetar.ps1` genera el paquete.
 
 En `dist` quedan también las versiones sueltas, `PDFbyWilly.exe` (Intel/AMD) y `PDFbyWilly-ARM64.exe`, que se
 pueden usar sin instalar.
@@ -52,7 +53,8 @@ a la ventana lo abre (en otra ventana si ya hay uno).
   - `Firmador.cs`: firma con iText 9. `Verificador.cs`: comprueba firmas con lo que trae .NET y la cadena de
     confianza de Windows. `Instalacion.cs`: alta y baja en Windows (`--registrar`, `--desinstalar`).
 - `instalador`: `PDFbyWilly-Setup.exe`.
-- `herramientas/icono.ps1`: dibuja el icono (cuadrado rojo, «PDF» y debajo «BY WILLY»).
+- `herramientas/icono.ps1`: dibuja los iconos (cuadrado rojo, «PDF» y debajo «BY WILLY» o «SIMPLE»), en
+  `src/PDFbyWilly/iconos`; con `-Store`, también los de la Store.
 - `pruebas`: `dotnet run` genera un formulario, lo firma dos veces con un certificado de prueba y comprueba que se
   verifican y que un documento manipulado se detecta. `dotnet run -- comprobar archivo.pdf` enseña firmas, campos y
   anotaciones de cualquier PDF.

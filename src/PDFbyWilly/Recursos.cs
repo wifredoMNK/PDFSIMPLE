@@ -23,5 +23,5 @@ static class Recursos
         return ms.ToArray();
     }
 
-    public static Icon Icono() => new(Ensamblado.GetManifestResourceStream(Nombres["PDFbyWilly.ico"])!);
+    public static Icon Icono() => new(Ensamblado.GetManifestResourceStream(Nombres["icono.ico"])!);
 }

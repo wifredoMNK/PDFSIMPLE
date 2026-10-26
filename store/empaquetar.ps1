@@ -1,5 +1,5 @@
-﻿# Genera el paquete para subir a la Microsoft Store: dist\store\PDFbyWilly_<versión>.msixbundle, con las
-# versiones Intel/AMD y ARM dentro. La Store lo firma al publicarlo; aquí no hace falta certificado.
+﻿# Genera el paquete para subir a la Microsoft Store, donde el programa se llama PDFSIMPLE:
+# dist\store\PDFSIMPLE_<versión>.msixbundle, con las versiones Intel/AMD y ARM dentro. La Store lo firma al publicarlo; aquí no hace falta certificado.
 #
 # Antes:
 #   1. store\identidad.json con los datos de Partner Center (el producto → Identidad del producto):
@@ -15,9 +15,6 @@ $trabajo = Join-Path $raiz 'store\obj'
 $id = Get-Content (Join-Path $PSScriptRoot 'identidad.json') -Raw -Encoding UTF8 | ConvertFrom-Json
 if ($id.Nombre -like 'PENDIENTE*') { Write-Warning 'store\identidad.json aún tiene los datos de prueba: el paquete sirve para comprobar, no para subir.' }
 
-# Las dos versiones del programa (publicar.ps1 las deja en dist).
-if (-not (Test-Path "$dist\PDFbyWilly.exe") -or -not (Test-Path "$dist\PDFbyWilly-ARM64.exe")) { & (Join-Path $raiz 'publicar.ps1') }
-
 # makeappx y makepri, del paquete oficial de herramientas del SDK de Windows (sin instalar el SDK).
 $sdk = Join-Path $raiz 'herramientas\sdk'
 $herr = Get-ChildItem $sdk -Recurse -Filter makeappx.exe -ErrorAction SilentlyContinue | Where-Object { $_.Directory.Name -eq 'x64' } | Select-Object -First 1
@@ -32,13 +29,23 @@ $makeappx = $herr.FullName
 $makepri = Join-Path $herr.DirectoryName 'makepri.exe'
 
 Remove-Item $trabajo, $salida -Recurse -Force -ErrorAction SilentlyContinue
+
+# El programa compilado como PDFSIMPLE, con su obj y bin aparte para no mezclarse con PDFbyWilly.
+$proyecto = Join-Path $raiz 'src\PDFbyWilly\PDFbyWilly.csproj'
+foreach ($rid in 'win-x64', 'win-arm64') {
+    dotnet publish $proyecto -c Release -r $rid --self-contained true -o "$trabajo\publicar\$rid" --disable-build-servers -m:1 `
+        -p:Marca=PDFSIMPLE "-p:BaseIntermediateOutputPath=$trabajo\intermedio\\" "-p:BaseOutputPath=$trabajo\bin\\" `
+        -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:EnableCompressionInSingleFile=true -p:DebugType=embedded
+    if ($LASTEXITCODE -ne 0) { throw "No ha compilado PDFSIMPLE para $rid." }
+}
+
 New-Item -ItemType Directory -Force $salida, "$trabajo\msix" | Out-Null
 $plantilla = Get-Content (Join-Path $PSScriptRoot 'AppxManifest.xml') -Raw -Encoding UTF8
 
-foreach ($a in @(@{ Arq = 'x64'; Exe = 'PDFbyWilly.exe' }, @{ Arq = 'arm64'; Exe = 'PDFbyWilly-ARM64.exe' })) {
+foreach ($a in @(@{ Arq = 'x64'; Rid = 'win-x64' }, @{ Arq = 'arm64'; Rid = 'win-arm64' })) {
     $dir = Join-Path $trabajo $a.Arq
     New-Item -ItemType Directory -Force $dir | Out-Null
-    Copy-Item "$dist\$($a.Exe)" "$dir\PDFbyWilly.exe"
+    Copy-Item "$trabajo\publicar\$($a.Rid)\PDFSIMPLE.exe" "$dir\PDFSIMPLE.exe"
     Copy-Item (Join-Path $PSScriptRoot 'Assets') "$dir\Assets" -Recurse
     $manifiesto = $plantilla.Replace('{{Nombre}}', $id.Nombre).Replace('{{Editor}}', $id.Editor).
         Replace('{{EditorVisible}}', $id.EditorVisible).Replace('{{Version}}', $id.Version).Replace('{{Arquitectura}}', $a.Arq)
@@ -49,11 +56,11 @@ foreach ($a in @(@{ Arq = 'x64'; Exe = 'PDFbyWilly.exe' }, @{ Arq = 'arm64'; Exe
     & $makepri new /pr $dir /cf "$trabajo\priconfig.xml" /mn "$dir\AppxManifest.xml" /of "$dir\resources.pri" /o | Out-Null
     if ($LASTEXITCODE -ne 0) { throw "makepri ha fallado ($($a.Arq))." }
 
-    & $makeappx pack /d $dir /p "$trabajo\msix\PDFbyWilly_$($id.Version)_$($a.Arq).msix" /o
+    & $makeappx pack /d $dir /p "$trabajo\msix\PDFSIMPLE_$($id.Version)_$($a.Arq).msix" /o
     if ($LASTEXITCODE -ne 0) { throw "makeappx pack ha fallado ($($a.Arq))." }
 }
 
-$bundle = Join-Path $salida "PDFbyWilly_$($id.Version).msixbundle"
+$bundle = Join-Path $salida "PDFSIMPLE_$($id.Version).msixbundle"
 & $makeappx bundle /d "$trabajo\msix" /p $bundle /bv $id.Version /o
 if ($LASTEXITCODE -ne 0) { throw 'makeappx bundle ha fallado.' }
 '{0}  {1:N0} MB' -f $bundle, ((Get-Item $bundle).Length / 1MB)

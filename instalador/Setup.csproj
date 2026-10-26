@@ -12,7 +12,7 @@
     <LangVersion>latest</LangVersion>
     <AssemblyName>PDFbyWilly-Setup</AssemblyName>
     <RootNamespace>PDFbyWillySetup</RootNamespace>
-    <ApplicationIcon>..\src\PDFbyWilly\PDFbyWilly.ico</ApplicationIcon>
+    <ApplicationIcon>..\src\PDFbyWilly\iconos\PDFbyWilly.ico</ApplicationIcon>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <PlatformTarget>AnyCPU</PlatformTarget>
     <Prefer32Bit>false</Prefer32Bit>
@@ -27,7 +27,7 @@
   <ItemGroup>
     <EmbeddedResource Include="..\dist\PDFbyWilly.exe" LogicalName="x64.exe" />
     <EmbeddedResource Include="..\dist\PDFbyWilly-ARM64.exe" LogicalName="arm64.exe" />
-    <EmbeddedResource Include="..\src\PDFbyWilly\PDFbyWilly.ico" LogicalName="icono.ico" />
+    <EmbeddedResource Include="..\src\PDFbyWilly\iconos\PDFbyWilly.ico" LogicalName="icono.ico" />
   </ItemGroup>
 
 </Project>
