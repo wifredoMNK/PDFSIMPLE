@@ -62,7 +62,8 @@ a la ventana lo abre (en otra ventana si ya hay uno).
 - `herramientas/icono.ps1`: dibuja el icono (cuadrado rojo, «PDF» y debajo «SIMPLE») y los de la Store.
 - `pruebas`: `dotnet run` genera un formulario, lo firma dos veces con un certificado de prueba y comprueba que se
   verifican y que un documento manipulado se detecta. `dotnet run -- comprobar archivo.pdf` enseña firmas, campos y
-  anotaciones de cualquier PDF.
+  anotaciones de cualquier PDF, y `dotnet run -- inspeccionar archivo.pdf` la estructura del formulario (tipos, banderas,
+  fuentes, scripts) sin enseñar los valores.
 
 ## Licencia
 

@@ -286,3 +286,12 @@ body.lector-esperando * {
 #lectorAviso.error {
   background: #a3262a;
 }
+
+/* Campos de solo lectura que cambia el script del PDF (código de barras del 790): se ve lo pintado con la fuente
+   del documento, no la casilla HTML que pdf.js pone encima (ver camposDelScript en lector.js). */
+.annotationLayer .textWidgetAnnotation.hasOwnCanvas.sandboxModified canvas.annotationContent {
+  display: block !important;
+}
+.annotationLayer .textWidgetAnnotation.hasOwnCanvas.sandboxModified :is(input, textarea) {
+  display: none !important;
+}

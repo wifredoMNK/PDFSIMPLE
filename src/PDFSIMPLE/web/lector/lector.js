@@ -135,7 +135,51 @@
     interceptar("secondaryOpenFile", abrir);
 
     añadirBotones();
+    camposDelScript();
     recargar();
+  }
+
+  /**
+   * Los campos de solo lectura que rellena el JavaScript del PDF, como el código de barras de los modelos 790 de
+   * Hacienda: pdf.js los tapa con una casilla HTML en letra normal (se ve «ööE1Aã1Fã~» y no las barras). Aquí se
+   * pintan en la página con la fuente del propio PDF: el dibujo de pantalla recibe los valores del formulario
+   * (pdf.js solo se los da al imprimir) y la página se vuelve a pintar cuando el script los cambia.
+   */
+  function camposDelScript() {
+    app.eventBus.on("documentloaded", () => {
+      const transporte = app.pdfDocument?._transport;
+      if (!transporte?.getRenderingIntent || transporte.lectorParcheado) return;
+      transporte.lectorParcheado = true;
+      // Qué claves del almacén son valores de campos: las anotaciones nuevas (texto, firmas…) tienen su propia capa.
+      const almacen = app.pdfDocument.annotationStorage, campos = new Set();
+      const poner = almacen.setValue.bind(almacen);
+      almacen.setValue = (clave, valor) => {
+        if (valor && typeof valor === "object" && typeof valor.serialize !== "function" && "value" in valor) campos.add(clave);
+        return poner(clave, valor);
+      };
+      const original = transporte.getRenderingIntent.bind(transporte);
+      transporte.getRenderingIntent = (intent, modo, ...resto) => {
+        const r = original(intent, modo, ...resto);
+        if (intent !== "display" || modo !== pdfjsLib.AnnotationMode.ENABLE_FORMS || r.annotationStorageSerializable.map || !campos.size) return r;
+        try {
+          const map = new Map();
+          for (const clave of campos) {
+            const v = almacen.getRawValue(clave);
+            if (v && typeof v === "object") map.set(clave, { ...v });
+          }
+          const hash = JSON.stringify([...map]);
+          return { ...r, cacheKey: r.cacheKey + "_" + hash, annotationStorageSerializable: { map, hash, transfer: undefined } };
+        } catch {
+          return r;
+        }
+      };
+    });
+    let espera = 0;
+    document.addEventListener("updatefromsandbox", e => {
+      if (!e.detail || !("value" in e.detail) || !e.target.closest?.(".textWidgetAnnotation.hasOwnCanvas")) return;
+      clearTimeout(espera);
+      espera = setTimeout(() => app.pdfViewer.refresh(), 150);
+    }, true);
   }
 
   function interceptar(id, fn) {

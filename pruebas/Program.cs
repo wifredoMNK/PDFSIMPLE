@@ -82,6 +82,29 @@ if (args.Length == 3 && args[0] == "demo")
     return 0;
 }
 
+// «dotnet run -- inspeccionar archivo.pdf»: estructura del formulario (tipos, banderas, scripts), sin enseñar valores.
+if (args.Length == 2 && args[0] == "inspeccionar")
+{
+    using var d = new PdfDocument(new PdfReader(args[1]).SetUnethicalReading(true));
+    var form = PdfFormCreator.GetAcroForm(d, false);
+    Console.WriteLine($"páginas {d.GetNumberOfPages()}  campos {form?.GetAllFormFields().Count}");
+    foreach (var kv in form?.GetAllFormFields() ?? new Dictionary<string, PdfFormField>())
+    {
+        var f = kv.Value; var w = f.GetWidgets().FirstOrDefault();
+        var r = w?.GetRectangle()?.ToRectangle();
+        int flags = w?.GetFlags() ?? 0;
+        string da = (f.GetPdfObject().GetAsString(PdfName.DA) ?? w?.GetPdfObject().GetAsString(PdfName.DA))?.ToUnicodeString() ?? "";
+        var aa = f.GetPdfObject().GetAsDictionary(PdfName.AA);
+        var ap = w?.GetAppearanceDictionary();
+        Console.WriteLine($"{kv.Key,-40} {f.GetFormType()?.GetValue(),-4} valor={f.GetValueAsString().Length,3}c  F={flags,-3} rect={(r is null ? "-" : $"{r.GetX():0},{r.GetY():0},{r.GetWidth():0}x{r.GetHeight():0}")}  DA='{da}'  AA={(aa is null ? "-" : string.Join(",", aa.KeySet().Select(k => k.GetValue())))}  AP={(ap is null ? "no" : "sí")}");
+    }
+    var nombresJs = d.GetCatalog().GetPdfObject().GetAsDictionary(PdfName.Names)?.GetAsDictionary(PdfName.JavaScript)?.GetAsArray(PdfName.Names);
+    for (int i = 0; nombresJs != null && i < nombresJs.Size(); i += 2) Console.WriteLine("  script de documento: " + nombresJs.GetAsString(i));
+    var alImprimir = d.GetCatalog().GetPdfObject().GetAsDictionary(PdfName.AA)?.GetAsDictionary(PdfName.WP);
+    if (alImprimir != null) Console.WriteLine("  script al imprimir (WP)");
+    return 0;
+}
+
 string salida = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "salida"));
 Directory.CreateDirectory(salida);
 int fallos = 0;
