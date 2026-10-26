@@ -23,13 +23,13 @@ en el menú `»` (se recuerda) y lo que no cabe al estrechar la ventana va tambi
 ## Dos versiones
 
 ```powershell
-.\publicar.ps1           # dist\PDFSIMPLE-Setup.exe (también en la carpeta del proyecto) y los .exe sueltos
+.\publicar.ps1           # dist\PDFSIMPLE-Setup.exe (también en la carpeta del proyecto) y dist\PDFSIMPLE.exe suelto
 .\store\empaquetar.ps1   # dist\store\PDFSIMPLE_<versión>.msixbundle para la Microsoft Store
 ```
 
 **Instalador `PDFSIMPLE-Setup.exe`**, para repartir fuera de la Store:
 
-- Detecta si el equipo es Intel/AMD o ARM (Snapdragon) e instala la versión que toca (las dos van dentro).
+- Un solo `PDFSIMPLE.exe` (unos 9,5 MB) vale para Intel/AMD y ARM.
 - Pide permiso de administrador una vez: se instala en `C:\Program Files\PDFSIMPLE` y se registra para todo el
   equipo, que es como Windows lo enseña en su lista de programas para los PDF.
 - Opciones: acceso directo en el escritorio y anclar a la barra de tareas (Windows no deja anclar por programa:
@@ -40,16 +40,16 @@ en el menú `»` (se recuerda) y lo que no cabe al estrechar la ventana va tambi
 
 **Microsoft Store**: la firma Microsoft y no sale ningún aviso. Ver [store/LEEME.md](store/LEEME.md).
 
-Llevan .NET dentro; el instalador es .NET Framework 4.8 (ya viene con Windows 10 y 11). WebView2 viene con Windows;
-si faltara, el programa ofrece descargarlo.
+Programa e instalador son **.NET Framework 4.8**, que ya viene con Windows 10 y 11: no llevan .NET dentro (con .NET 10
+pesaba 55 MB). WebView2 también viene con Windows; si faltara, el programa ofrece descargarlo.
 
 Atajos: Ctrl+O abrir, Ctrl+S guardar, Ctrl+Mayús+S guardar como, Ctrl+F buscar, Ctrl+P imprimir. Arrastrar un PDF
 a la ventana lo abre (en otra ventana si ya hay uno).
 
 ## Cómo está hecho
 
-- `src/PDFSIMPLE`: programa WinForms (.NET 10) con un WebView2 dentro. Todo va incrustado en el .exe
-  (`Recursos.cs`).
+- `src/PDFSIMPLE`: programa WinForms (.NET Framework 4.8, C#) con un WebView2 dentro. Todo va en un solo .exe:
+  las librerías con Costura, el visor en un zip y el cargador nativo de WebView2 de cada procesador (`Recursos.cs`).
   - `web/pdfjs`: el visor de [pdf.js](https://github.com/mozilla/pdf.js) 6.4.299 (Apache 2.0) **tal cual sale**
     (para actualizarlo, se sustituye la carpeta por la del nuevo `pdfjs-*-dist.zip`).
   - `web/lector`: lo nuestro: barra, guardar en disco, colocar la firma, verificador de firmas, idiomas, traducciones

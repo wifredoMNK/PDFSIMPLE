@@ -3,7 +3,6 @@
 // ver que se detecta. Deja los PDF y el .pfx de prueba (clave «prueba») en pruebas/salida.
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
-using System.Text.Json;
 using iText.Forms;
 using iText.Forms.Fields;
 using iText.Kernel.Font;
@@ -14,8 +13,9 @@ using PDFSIMPLE;
 using Rectangle = iText.Kernel.Geom.Rectangle;
 
 // «dotnet run -- comprobar archivo.pdf»: firmas y anotaciones de un PDF cualquiera.
-if (args is ["comprobar", var archivoAComprobar])
+if (args.Length == 2 && args[0] == "comprobar")
 {
+    var archivoAComprobar = args[1];
     var bytes = File.ReadAllBytes(archivoAComprobar);
     foreach (var (n, estado, json) in Verificar(bytes)) Console.WriteLine($"{n}: {estado}  {json}");
     using var d = new PdfDocument(new PdfReader(new MemoryStream(bytes)));
@@ -25,14 +25,15 @@ if (args is ["comprobar", var archivoAComprobar])
     for (int p = 1; p <= d.GetNumberOfPages(); p++)
         Console.WriteLine($"página {p}: " + string.Join(", ", d.GetPage(p).GetAnnotations().Select(a => a.GetSubtype().GetValue())));
     var campos = PdfFormCreator.GetAcroForm(d, false)?.GetAllFormFields();
-    if (campos is not null) foreach (var (k, v) in campos) Console.WriteLine($"campo {k} = {v.GetValueAsString()}");
+    if (campos is not null) foreach (var kv in campos) Console.WriteLine($"campo {kv.Key} = {kv.Value.GetValueAsString()}");
     return 0;
 }
 
 // «dotnet run -- demo es|fr|en archivo.pdf»: formulario de ejemplo en ese idioma, relleno y firmado con un
 // certificado de prueba de nombre inventado. Es lo que sale en las capturas de la Microsoft Store.
-if (args is ["demo", var lengua, var archivoDemo])
+if (args.Length == 3 && args[0] == "demo")
 {
+    string lengua = args[1], archivoDemo = args[2];
     var x = lengua switch
     {
         "fr" => new { Titulo = "DEMANDE D'INSCRIPTION", Nombre = "Nom et prénom", NombreV = "CLAIRE DUBOIS", Id = "N° d'identité", IdV = "FR 12 345 678",
@@ -73,7 +74,7 @@ if (args is ["demo", var lengua, var archivoDemo])
     using var rsaDemo = RSA.Create(2048);
     var reqDemo = new CertificateRequest($"CN={x.NombreV}, C=ES", rsaDemo, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
     using var autoDemo = reqDemo.CreateSelfSigned(DateTimeOffset.Now.AddDays(-1), DateTimeOffset.Now.AddYears(1));
-    var certDemo = X509CertificateLoader.LoadPkcs12(autoDemo.Export(X509ContentType.Pfx, "demo"), "demo", X509KeyStorageFlags.EphemeralKeySet);
+    var certDemo = new X509Certificate2(autoDemo.Export(X509ContentType.Pfx, "demo"), "demo", X509KeyStorageFlags.EphemeralKeySet);
     Ajustes.Actual.Idioma = lengua; // el texto de la firma visible, en ese idioma (no se guarda)
     var firmado = Firmador.Firmar(ms.ToArray(), certDemo, 1, [300, 250, 520, 310]);
     File.WriteAllBytes(archivoDemo, firmado.Pdf);
@@ -120,7 +121,7 @@ req.CertificateExtensions.Add(new X509KeyUsageExtension(X509KeyUsageFlags.Digita
 using var autofirmado = req.CreateSelfSigned(DateTimeOffset.Now.AddDays(-1), DateTimeOffset.Now.AddYears(2));
 string pfx = Path.Combine(salida, "prueba.pfx");
 File.WriteAllBytes(pfx, autofirmado.Export(X509ContentType.Pfx, "prueba"));
-var cert = X509CertificateLoader.LoadPkcs12FromFile(pfx, "prueba", X509KeyStorageFlags.EphemeralKeySet);
+var cert = new X509Certificate2(pfx, "prueba", X509KeyStorageFlags.EphemeralKeySet);
 
 // 3. Primera firma, visible
 var r1 = Firmador.Firmar(File.ReadAllBytes(formulario), cert, 1, [320, 60, 540, 120]);
@@ -131,7 +132,16 @@ Console.WriteLine("Primera firma" + (r1.Aviso is null ? " (con sello de tiempo)"
 var r2 = Firmador.Firmar(r1.Pdf, cert, 1, [60, 60, 280, 120]);
 File.WriteAllBytes(Path.Combine(salida, "doble.pdf"), r2.Pdf);
 
-Comprobar(r2.Pdf.AsSpan(0, r1.Pdf.Length).SequenceEqual(r1.Pdf), "la segunda firma se añade al final sin tocar lo anterior");
+if (r1.Aviso is null)
+    using (var docSello = new PdfDocument(new PdfReader(new MemoryStream(r1.Pdf))))
+    {
+        var dic = new SignatureUtil(docSello).GetSignatureDictionary("Firma1");
+        var br = dic.GetAsArray(PdfName.ByteRange).ToLongArray();
+        byte[] firmado = r1.Pdf.Trozo((int)br[0], (int)br[1]).Concat(r1.Pdf.Trozo((int)br[2], (int)br[3])).ToArray();
+        var hora = Verificador.FechaDelSello(Verificador.RecortarDer(dic.GetAsString(PdfName.Contents).GetValueBytes()), firmado);
+        Comprobar(hora is not null && Math.Abs((hora.Value - DateTime.Now).TotalMinutes) < 10, "lee y valida el sello de tiempo de la firma: " + hora);
+    }
+Comprobar(Compat.Iguales(r2.Pdf.Trozo(0, r1.Pdf.Length), r1.Pdf), "la segunda firma se añade al final sin tocar lo anterior");
 
 // 5. Verificación, como la pide el visor (ByteRange + Contents)
 foreach (var (nombre, firma, json) in Verificar(r2.Pdf))
@@ -170,11 +180,11 @@ static IEnumerable<(string nombre, string estado, string json)> Verificar(byte[]
     {
         var dic = su.GetSignatureDictionary(n);
         var br = dic.GetAsArray(PdfName.ByteRange).ToLongArray();
-        byte[] contenido = [.. pdf.AsSpan((int)br[0], (int)br[1]), .. pdf.AsSpan((int)br[2], (int)br[3])];
+        byte[] contenido = pdf.Trozo((int)br[0], (int)br[1]).Concat(pdf.Trozo((int)br[2], (int)br[3])).ToArray();
         byte[] p7 = dic.GetAsString(PdfName.Contents).GetValueBytes();
         string sub = dic.GetAsName(PdfName.SubFilter).GetValue();
         var res = Verificador.Verificar(contenido, p7, sub, dic.GetAsString(PdfName.M)?.ToUnicodeString());
-        string json = JsonSerializer.Serialize(res);
-        yield return (n, JsonDocument.Parse(json).RootElement.GetProperty("status").GetString()!, json.Length > 300 ? json[..300] + "…" : json);
+        string json = Json.Texto(res);
+        yield return (n, Json.Objeto(json).Cadena("status")!, json.Length > 300 ? json.Substring(0, 300) + "…" : json);
     }
 }

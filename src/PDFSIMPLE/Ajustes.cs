@@ -1,4 +1,3 @@
-using System.Text.Json;
 
 namespace PDFSIMPLE;
 
@@ -26,7 +25,7 @@ sealed class Ajustes
 
     static Ajustes Leer()
     {
-        try { return JsonSerializer.Deserialize<Ajustes>(File.ReadAllText(Archivo)) ?? new(); }
+        try { return Json.Leer<Ajustes>(File.ReadAllText(Archivo)) ?? new(); }
         catch { return new(); }
     }
 
@@ -40,7 +39,7 @@ sealed class Ajustes
             disco.Carpeta = Carpeta ?? disco.Carpeta;
             disco.Certificado = Certificado ?? disco.Certificado;
             disco.Idioma = Idioma ?? disco.Idioma;
-            File.WriteAllText(Archivo, JsonSerializer.Serialize(disco));
+            File.WriteAllText(Archivo, Json.Texto(disco));
         }
         catch { }
     }
@@ -51,17 +50,17 @@ sealed class Ajustes
         var pantalla = Screen.PrimaryScreen!.WorkingArea;
         var tamaño = f.LogicalToDeviceUnits(new Size(1100, 850));
         f.Size = new Size(Math.Min(tamaño.Width, pantalla.Width * 9 / 10), Math.Min(tamaño.Height, pantalla.Height * 9 / 10));
-        if (Ventana is [var x, var y, var w, var h])
+        if (Ventana is { Length: 4 })
         {
-            var r = new Rectangle(x, y, w, h);
+            var r = new Rectangle(Ventana[0], Ventana[1], Ventana[2], Ventana[3]);
             if (Screen.AllScreens.Any(s => s.WorkingArea.IntersectsWith(r)))
             {
                 // Que no se meta debajo de la barra de tareas ni se salga de la pantalla.
                 var zona = Screen.FromRectangle(r).WorkingArea;
                 r.Width = Math.Min(r.Width, zona.Width);
                 r.Height = Math.Min(r.Height, zona.Height);
-                r.X = Math.Clamp(r.X, zona.Left, zona.Right - r.Width);
-                r.Y = Math.Clamp(r.Y, zona.Top, zona.Bottom - r.Height);
+                r.X = Compat.Ajustar(r.X, zona.Left, zona.Right - r.Width);
+                r.Y = Compat.Ajustar(r.Y, zona.Top, zona.Bottom - r.Height);
                 f.StartPosition = FormStartPosition.Manual;
                 f.Bounds = r;
             }
@@ -72,7 +71,7 @@ sealed class Ajustes
     public void RecordarDe(Form f)
     {
         var r = f.WindowState == FormWindowState.Normal ? f.Bounds : f.RestoreBounds;
-        Ventana = [r.X, r.Y, r.Width, r.Height];
+        Ventana = new[] { r.X, r.Y, r.Width, r.Height };
         Maximizada = f.WindowState == FormWindowState.Maximized;
         Guardar();
     }

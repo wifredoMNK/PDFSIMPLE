@@ -70,7 +70,7 @@ sealed class DialogoCertificado : Form
                 : Idioma.T("conCertificados"),
         };
         var botones = new FlowLayoutPanel { Dock = DockStyle.Bottom, FlowDirection = FlowDirection.RightToLeft, AutoSize = true, Padding = new Padding(4) };
-        botones.Controls.AddRange([cancelar, firmar, archivo, ver]);
+        botones.Controls.AddRange(new Control[] { cancelar, firmar, archivo, ver });
 
         var cuerpo = new Panel { Dock = DockStyle.Fill, Padding = new Padding(10, 6, 10, 0) };
         cuerpo.Controls.Add(lista);
@@ -100,8 +100,9 @@ sealed class DialogoCertificado : Form
             if (clave is null) return;
             try
             {
-                var todos = X509CertificateLoader.LoadPkcs12CollectionFromFile(dlg.FileName, clave, X509KeyStorageFlags.EphemeralKeySet);
-                elegido = todos.FirstOrDefault(c => c.HasPrivateKey)
+                var todos = new X509Certificate2Collection();
+                todos.Import(dlg.FileName, clave, X509KeyStorageFlags.EphemeralKeySet);
+                elegido = todos.Cast<X509Certificate2>().FirstOrDefault(c => c.HasPrivateKey)
                           ?? throw new CryptographicException(Idioma.T("sinClavePrivada"));
                 DialogResult = DialogResult.OK;
                 return;
@@ -126,7 +127,7 @@ sealed class DialogoCertificado : Form
         var caja = new TextBox { UseSystemPasswordChar = true, Location = new Point(E(12), E(38)), Width = E(356) };
         var ok = new Button { Text = Idioma.T("aceptar"), DialogResult = DialogResult.OK, Location = new Point(E(196), E(80)), AutoSize = true };
         var no = new Button { Text = Idioma.T("cancelar"), DialogResult = DialogResult.Cancel, Location = new Point(E(286), E(80)), AutoSize = true };
-        f.Controls.AddRange([et, caja, ok, no]);
+        f.Controls.AddRange(new Control[] { et, caja, ok, no });
         f.AcceptButton = ok; f.CancelButton = no;
         return f.ShowDialog(this) == DialogResult.OK ? caja.Text : null;
     }
@@ -137,7 +138,7 @@ sealed class DialogoCertificado : Form
         using var almacen = new X509Store(StoreName.My, StoreLocation.CurrentUser);
         almacen.Open(OpenFlags.ReadOnly | OpenFlags.OpenExistingOnly);
         var ahora = DateTime.Now;
-        return almacen.Certificates
+        return almacen.Certificates.Cast<X509Certificate2>()
             .Where(c => c.HasPrivateKey && c.NotBefore <= ahora && c.NotAfter >= ahora && SirveParaFirmar(c))
             .OrderBy(c => c.GetNameInfo(X509NameType.SimpleName, false))
             .ThenByDescending(c => c.NotAfter)

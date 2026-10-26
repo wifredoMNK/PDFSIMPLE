@@ -1,41 +1,68 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
+  <!--
+    .NET Framework 4.8: el que ya trae Windows 10 y 11, así el .exe no lleva .NET dentro (con .NET 10 pesaba 55 MB).
+    Un solo .exe para Intel/AMD y ARM (AnyCPU): las librerías van dentro (Costura) y el visor en un zip (Recursos.cs).
+  -->
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>net10.0-windows</TargetFramework>
+    <TargetFramework>net48</TargetFramework>
     <UseWindowsForms>true</UseWindowsForms>
+    <LangVersion>latest</LangVersion>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <Prefer32Bit>false</Prefer32Bit>
     <AssemblyName>PDFSIMPLE</AssemblyName>
-    <!-- Por si se compila con obj o bin en otro sitio: que no recoja lo de aquí -->
-    <DefaultItemExcludes>$(DefaultItemExcludes);obj\**;bin\**</DefaultItemExcludes>
     <RootNamespace>PDFSIMPLE</RootNamespace>
     <ApplicationIcon>iconos\PDFSIMPLE.ico</ApplicationIcon>
-    <ApplicationHighDpiMode>PerMonitorV2</ApplicationHighDpiMode>
-    <SatelliteResourceLanguages>es</SatelliteResourceLanguages>
-    <Version>1.0.1</Version>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <DefaultItemExcludes>$(DefaultItemExcludes);obj\**;bin\**</DefaultItemExcludes>
+    <Version>1.1.0</Version>
     <Product>PDFSIMPLE</Product>
     <AssemblyTitle>PDFSIMPLE</AssemblyTitle>
     <Description>Lector de PDF sin publicidad: formularios, texto y firma digital</Description>
     <Copyright>Willy</Copyright>
-    <!-- WebView2 trae también su DLL de WPF, que aquí no se usa -->
+    <DebugType>embedded</DebugType>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
     <MSBuildWarningsAsMessages>MSB3277</MSBuildWarningsAsMessages>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Using Remove="System.Net.Http" />
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.4314.35" />
     <PackageReference Include="itext" Version="9.8.0" />
     <PackageReference Include="itext.bouncy-castle-adapter" Version="9.8.0" />
+    <PackageReference Include="Costura.Fody" Version="6.2.0" PrivateAssets="all" />
+    <PackageReference Include="Fody" Version="6.9.3" PrivateAssets="all" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="System.Security" />
+    <Reference Include="System.Web.Extensions" />
+    <Reference Include="System.IO.Compression" />
+    <Reference Include="Microsoft.CSharp" />
   </ItemGroup>
 
   <ItemGroup>
     <InternalsVisibleTo Include="Pruebas" />
   </ItemGroup>
 
+  <!-- El visor (pdf.js y lo nuestro) va dentro del .exe en un zip: 10 MB que comprimidos son menos de 4. -->
+  <Target Name="ComprimirVisor" BeforeTargets="PrepareForBuild" Inputs="@(Visor)" Outputs="$(BaseIntermediateOutputPath)web.zip">
+    <ZipDirectory SourceDirectory="web" DestinationFile="$(BaseIntermediateOutputPath)web.zip" Overwrite="true" />
+  </Target>
   <ItemGroup>
-    <!-- Todo va dentro del .exe: el visor se sirve desde los recursos (Recursos.cs) -->
-    <EmbeddedResource Include="web\**\*" LogicalName="web/%(RecursiveDir)%(Filename)%(Extension)" />
+    <Visor Include="web\**\*" />
+    <EmbeddedResource Include="$(BaseIntermediateOutputPath)web.zip" LogicalName="web.zip" />
     <EmbeddedResource Include="iconos\PDFSIMPLE.ico" LogicalName="icono.ico" />
+    <!-- El cargador de WebView2 es nativo, uno por procesador: se saca al arrancar (Recursos.PrepararWebView2). -->
+    <EmbeddedResource Include="$(NuGetPackageRoot)microsoft.web.webview2\1.0.4314.35\runtimes\win-x64\native\WebView2Loader.dll" LogicalName="loader/x64/WebView2Loader.dll" />
+    <EmbeddedResource Include="$(NuGetPackageRoot)microsoft.web.webview2\1.0.4314.35\runtimes\win-arm64\native\WebView2Loader.dll" LogicalName="loader/arm64/WebView2Loader.dll" />
+    <EmbeddedResource Include="$(NuGetPackageRoot)microsoft.web.webview2\1.0.4314.35\runtimes\win-x86\native\WebView2Loader.dll" LogicalName="loader/x86/WebView2Loader.dll" />
   </ItemGroup>
 
 </Project>

@@ -18,39 +18,9 @@ namespace PDFSIMPLESetup
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
 
-            var arq = Arquitectura.DeEsteEquipo();
-            if (arq == null)
-            {
-                MessageBox.Show(Textos.T("necesita64"), Textos.T("instalar") + " PDFSIMPLE", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                return 1;
-            }
-            Application.Run(new VentanaSetup(arq.Value));
+            Application.Run(new VentanaSetup());
             return 0;
         }
-    }
-
-    enum Arq { X64, Arm64 }
-
-    static class Arquitectura
-    {
-        /// <summary>El procesador de verdad, aunque este instalador corra emulado.</summary>
-        public static Arq? DeEsteEquipo()
-        {
-            try
-            {
-                if (IsWow64Process2(Process.GetCurrentProcess().Handle, out _, out ushort nativo))
-                {
-                    if (nativo == 0xAA64) return Arq.Arm64;
-                    if (nativo == 0x8664) return Arq.X64;
-                    return null; // 32 bits
-                }
-            }
-            catch (EntryPointNotFoundException) { } // Windows 10 antiguo: no hay ARM64 que distinguir
-            return Environment.Is64BitOperatingSystem ? Arq.X64 : (Arq?)null;
-        }
-
-        [DllImport("kernel32.dll", SetLastError = true)]
-        static extern bool IsWow64Process2(IntPtr proceso, out ushort maquinaProceso, out ushort maquinaNativa);
     }
 
     /// <summary>
@@ -83,19 +53,10 @@ namespace PDFSIMPLESetup
             ["actualizar"] = new[] { "Actualizar", "Mettre à jour", "Update" },
             ["cancelar"] = new[] { "Cancelar", "Annuler", "Cancel" },
             ["terminar"] = new[] { "Terminar", "Terminer", "Finish" },
-            ["necesita64"] = new[] { "PDFSIMPLE necesita Windows de 64 bits.", "PDFSIMPLE nécessite Windows 64 bits.", "PDFSIMPLE needs 64-bit Windows." },
             ["lema"] = new[] {
                 "Lector de PDF sin publicidad: formularios, escribir a máquina y firma digital.",
                 "Lecteur PDF sans publicité : formulaires, saisie de texte et signature numérique.",
                 "Ad-free PDF reader: forms, typing on the page and digital signatures." },
-            ["arm"] = new[] {
-                "Este equipo es ARM (Snapdragon): se instala la versión para ARM.",
-                "Ce PC est ARM (Snapdragon) : la version ARM sera installée.",
-                "This PC is ARM (Snapdragon): the ARM version will be installed." },
-            ["intel"] = new[] {
-                "Este equipo es Intel / AMD de 64 bits: se instala esa versión.",
-                "Ce PC est Intel / AMD 64 bits : cette version sera installée.",
-                "This PC is 64-bit Intel / AMD: that version will be installed." },
             ["donde"] = new[] {
                 "Se instala en {0}, para todos los usuarios del equipo.",
                 "Installation dans {0}, pour tous les utilisateurs du PC.",
@@ -141,13 +102,13 @@ namespace PDFSIMPLESetup
 
     /// <summary>
     /// Una ventana con dos pasos: qué se instala (y opciones) y, al acabar, la propuesta de dejarlo
-    /// para los PDF. El registro en Windows lo hace el propio PDFSIMPLE.exe con «--registrar».
+    /// para los PDF. El programa es .NET Framework 4.8 (viene con Windows) y un solo .exe vale para
+    /// Intel/AMD y ARM. El registro en Windows lo hace el propio PDFSIMPLE.exe con «--registrar».
     /// </summary>
     sealed class VentanaSetup : Form
     {
         const string Nombre = "PDFSIMPLE";
 
-        readonly Arq arq;
         readonly string carpeta = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), Nombre);
         string Exe => Path.Combine(carpeta, Nombre + ".exe");
 
@@ -158,9 +119,8 @@ namespace PDFSIMPLESetup
         readonly Button instalar = new Button { AutoSize = true };
         readonly Label estado = new Label { AutoSize = true, ForeColor = SystemColors.GrayText };
 
-        public VentanaSetup(Arq arq)
+        public VentanaSetup()
         {
-            this.arq = arq;
             bool actualizar = File.Exists(Exe);
 
             Text = (actualizar ? Textos.T("actualizar") : Textos.T("instalar")) + " PDFSIMPLE";
@@ -175,7 +135,6 @@ namespace PDFSIMPLESetup
             // ---- paso 1
             var titulo = new Label { Text = Nombre, AutoSize = true, Font = new Font(Font.FontFamily, Font.Size * 1.8f, FontStyle.Bold) };
             var lema = Texto(Textos.T("lema"));
-            var equipo = Texto(Textos.T(arq == Arq.Arm64 ? "arm" : "intel"));
             var donde = Texto(Textos.T("donde", carpeta));
             donde.ForeColor = SystemColors.GrayText;
             var notaAnclar = Texto(Textos.T("notaAnclar"));
@@ -187,7 +146,7 @@ namespace PDFSIMPLESetup
             // La ventana no es un diálogo (va con Application.Run): los botones la cierran ellos.
             var cancelar = new Button { Text = Textos.T("cancelar"), AutoSize = true };
             cancelar.Click += (s, e) => Close();
-            paso1.Controls.AddRange(new Control[] { titulo, lema, equipo, donde, Hueco(), escritorio, anclar, notaAnclar, estado, Botones(cancelar, instalar) });
+            paso1.Controls.AddRange(new Control[] { titulo, lema, donde, Hueco(), escritorio, anclar, notaAnclar, estado, Botones(cancelar, instalar) });
             AcceptButton = instalar;
             CancelButton = cancelar;
 
@@ -238,7 +197,7 @@ namespace PDFSIMPLESetup
             {
                 Directory.CreateDirectory(carpeta);
                 string tmp = Exe + ".nuevo";
-                using (var origen = Assembly.GetExecutingAssembly().GetManifestResourceStream(arq == Arq.Arm64 ? "arm64.exe" : "x64.exe"))
+                using (var origen = Assembly.GetExecutingAssembly().GetManifestResourceStream("PDFSIMPLE.exe"))
                 using (var destino = File.Create(tmp))
                     origen.CopyTo(destino);
                 if (File.Exists(Exe)) File.Delete(Exe);

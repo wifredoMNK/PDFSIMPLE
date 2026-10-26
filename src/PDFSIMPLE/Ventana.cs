@@ -1,7 +1,5 @@
 using System.Diagnostics;
 using System.Text;
-using System.Text.Json;
-using System.Text.Json.Nodes;
 using Microsoft.Web.WebView2.Core;
 using Microsoft.Web.WebView2.WinForms;
 
@@ -111,7 +109,7 @@ sealed class Ventana : Form
             Cargar(archivo);
             _ = web.CoreWebView2?.ExecuteScriptAsync("lector.recargar()");
         }
-        else Process.Start(Environment.ProcessPath!, $"\"{archivo}\"");
+        else Process.Start(Application.ExecutablePath, $"\"{archivo}\"");
     }
 
     string? PedirRutaGuardar(string sugerido)
@@ -134,7 +132,7 @@ sealed class Ventana : Form
         // a medias, el original sigue entero.
         string tmp = destino + ".guardando";
         File.WriteAllBytes(tmp, contenido);
-        File.Move(tmp, destino, overwrite: true);
+        Compat.MoverPisando(tmp, destino);
     }
 
     // ---------------------------------------------------------------- cierre
@@ -181,19 +179,19 @@ sealed class Ventana : Form
 
             // Las ventanas modales no pueden salir dentro del evento: se cogen la respuesta en diferido.
             var diferido = e.GetDeferral();
-            BeginInvoke(async () =>
+            BeginInvoke(new Action(async () =>
             {
                 try
                 {
-                    object res = await Api(camino[4..], cuerpo, arg);
-                    e.Response = Json(res);
+                    object res = await Api(camino.Substring(4), cuerpo, arg);
+                    e.Response = RespuestaJson(res);
                 }
                 catch (Exception ex)
                 {
-                    e.Response = Json(new { error = ex.Message });
+                    e.Response = RespuestaJson(new { error = ex.Message });
                 }
                 finally { diferido.Complete(); }
-            });
+            }));
             return;
         }
 
@@ -220,7 +218,7 @@ sealed class Ventana : Form
         }
         else if (camino == "pdfjs/web/locale/es-ES/viewer.ftl")
         {
-            contenido = [.. contenido, .. Recursos.Leer("web/lector/es-ES.ftl")!];
+            contenido = contenido.Concat(Recursos.Leer("web/lector/es-ES.ftl")!).ToArray();
         }
         e.Response = Respuesta(200, TipoDe(camino), contenido);
     }
@@ -247,29 +245,31 @@ sealed class Ventana : Form
 
             case "guardar":
             {
-                var a = JsonNode.Parse(arg ?? "{}")!;
-                bool como = a["como"]?.GetValue<bool>() ?? false;
-                bool cerrar = a["cerrar"]?.GetValue<bool>() ?? false;
+                var a = Json.Objeto(arg);
+                bool como = a.Si("como");
+                bool cerrar = a.Si("cerrar");
                 string? destino = ruta;
                 if (como || destino is null)
                 {
-                    destino = PedirRutaGuardar(ruta ?? Path.Combine(Ajustes.Actual.UltimaCarpeta(), a["nombre"]?.GetValue<string>() ?? "documento.pdf"));
+                    destino = PedirRutaGuardar(ruta ?? Path.Combine(Ajustes.Actual.UltimaCarpeta(), a.Cadena("nombre") ?? "documento.pdf"));
                     if (destino is null) return new { cancelado = true };
                 }
                 Escribir(destino, cuerpo);
-                if (cerrar) { cerrarYa = true; BeginInvoke(Close); return new { ok = true }; }
+                if (cerrar) { cerrarYa = true; BeginInvoke(new Action(Close)); return new { ok = true }; }
                 Cargar(destino);
                 return new { ok = true, nombre = Path.GetFileName(destino), version };
             }
 
             case "firmar":
             {
-                var a = JsonNode.Parse(arg ?? "{}")!;
+                var a = Json.Objeto(arg);
                 var cert = DialogoCertificado.Elegir(this);
                 if (cert is null) return new { cancelado = true };
 
-                int pagina = a["pagina"]?.GetValue<int>() ?? 1;
-                float[]? rect = a["rect"] is JsonArray r ? r.Select(v => v!.GetValue<float>()).ToArray() : null;
+                int pagina = a.Entero("pagina", 1);
+                float[]? rect = a.TryGetValue("rect", out var rv) && rv is System.Collections.IEnumerable lista && rv is not string
+                    ? lista.Cast<object>().Select(v => Convert.ToSingle(v, System.Globalization.CultureInfo.InvariantCulture)).ToArray()
+                    : null;
 
                 Cursor = Cursors.WaitCursor;
                 Firmador.Resultado firmado;
@@ -288,17 +288,17 @@ sealed class Ventana : Form
 
             case "verificar":
             {
-                var a = JsonNode.Parse(arg ?? "{}")!;
-                int largo = a["largo"]!.GetValue<int>();
+                var a = Json.Objeto(arg);
+                int largo = a.Entero("largo");
                 return await Task.Run(() => Verificador.Verificar(
-                    cuerpo.AsSpan(0, largo).ToArray(), cuerpo.AsSpan(largo).ToArray(),
-                    a["subFilter"]?.GetValue<string>(), a["signingTime"]?.GetValue<string>()));
+                    cuerpo.Trozo(0, largo), cuerpo.Trozo(largo, cuerpo.Length - largo),
+                    a.Cadena("subFilter"), a.Cadena("signingTime")));
             }
 
             case "vercert":
             {
-                var a = JsonNode.Parse(Encoding.UTF8.GetString(cuerpo))!;
-                var c = System.Security.Cryptography.X509Certificates.X509CertificateLoader.LoadCertificate(Convert.FromBase64String(a["der"]!.GetValue<string>()));
+                var a = Json.Objeto(Encoding.UTF8.GetString(cuerpo));
+                var c = new System.Security.Cryptography.X509Certificates.X509Certificate2(Convert.FromBase64String(a.Cadena("der")!));
                 System.Security.Cryptography.X509Certificates.X509Certificate2UI.DisplayCertificate(c, Handle);
                 return new { ok = true };
             }
@@ -310,25 +310,25 @@ sealed class Ventana : Form
             case "idioma":
             {
                 // Se guarda y se vuelve a cargar el visor, que coge el idioma al arrancar (el documento sigue aquí).
-                string nuevo = JsonNode.Parse(arg ?? "{}")!["idioma"]?.GetValue<string>() ?? "";
+                string nuevo = Json.Objeto(arg).Cadena("idioma") ?? "";
                 if (!Idioma.Disponibles.Contains(nuevo)) return new { cancelado = true };
                 Ajustes.Actual.Idioma = nuevo;
                 Ajustes.Actual.Guardar();
                 version++;
-                BeginInvoke(() => web.CoreWebView2.Reload());
+                BeginInvoke(new Action(() => web.CoreWebView2.Reload()));
                 return new { ok = true };
             }
 
             case "cerrar":
                 cerrarYa = true;
-                BeginInvoke(Close);
+                BeginInvoke(new Action(Close));
                 return new { ok = true };
         }
         throw new InvalidOperationException("Orden desconocida: " + metodo);
     }
 
-    CoreWebView2WebResourceResponse Json(object o) =>
-        Respuesta(200, "application/json", JsonSerializer.SerializeToUtf8Bytes(o));
+    CoreWebView2WebResourceResponse RespuestaJson(object o) =>
+        Respuesta(200, "application/json", Json.Bytes(o));
 
     CoreWebView2WebResourceResponse Respuesta(int estado, string tipo, byte[] cuerpo) =>
         web.CoreWebView2.Environment.CreateWebResourceResponse(

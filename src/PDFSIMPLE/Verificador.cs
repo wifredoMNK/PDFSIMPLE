@@ -2,6 +2,10 @@ using System.Globalization;
 using System.Security.Cryptography;
 using System.Security.Cryptography.Pkcs;
 using System.Security.Cryptography.X509Certificates;
+using Org.BouncyCastle.Asn1;
+using Org.BouncyCastle.Cms;
+using Org.BouncyCastle.Security;
+using Org.BouncyCastle.Tsp;
 
 namespace PDFSIMPLE;
 
@@ -26,12 +30,14 @@ static class Verificador
             if (subFilter == "ETSI.RFC3161")
             {
                 // Sello de tiempo del documento entero (sin firmante persona).
-                if (!Rfc3161TimestampToken.TryDecode(der, out var tok, out _))
-                    return Invalida(Idioma.T("selloIlegible"), null);
-                if (!tok!.VerifySignatureForData(contenido, out var tsa))
+                TimeStampToken tok;
+                try { tok = new TimeStampToken(new CmsSignedData(der)); }
+                catch (Exception) { return Invalida(Idioma.T("selloIlegible"), null); }
+                var tsa = CertificadoTsa(tok);
+                if (tsa is null || !HuellaCoincide(tok, contenido))
                     return Invalida(Idioma.T("cambiadoTrasSello"), tsa);
-                cert = tsa!;
-                fecha = tok.TokenInfo.Timestamp.LocalDateTime;
+                cert = tsa;
+                fecha = tok.TimeStampInfo.GenTime.ToLocalTime();
                 sellada = true;
             }
             else
@@ -52,17 +58,13 @@ static class Verificador
                 try { si.CheckSignature(verifySignatureOnly: true); }
                 catch (CryptographicException) { return Invalida(Idioma.T("cambiadoTrasFirma"), cert); }
 
-                if (subFilter == "adbe.pkcs7.sha1" && !SHA1.HashData(contenido).AsSpan().SequenceEqual(cms.ContentInfo.Content))
-                    return Invalida(Idioma.T("cambiadoTrasFirma"), cert);
+                if (subFilter == "adbe.pkcs7.sha1")
+                    using (var sha1 = SHA1.Create())
+                        if (!Compat.Iguales(sha1.ComputeHash(contenido), cms.ContentInfo.Content))
+                            return Invalida(Idioma.T("cambiadoTrasFirma"), cert);
 
-                foreach (var attr in si.UnsignedAttributes)
-                    if (attr.Oid.Value == OidSelloEnFirma && attr.Values.Count > 0 &&
-                        Rfc3161TimestampToken.TryDecode(attr.Values[0].RawData, out var tok, out _) &&
-                        tok!.VerifySignatureForSignerInfo(si, out _))
-                    {
-                        fecha = tok.TokenInfo.Timestamp.LocalDateTime;
-                        sellada = true;
-                    }
+                fecha = FechaDelSello(der, subFilter == "adbe.pkcs7.sha1" ? null : contenido);
+                sellada = fecha is not null;
                 if (fecha is null)
                     foreach (var attr in si.SignedAttributes)
                         if (attr.Values.Count > 0 && attr.Values[0] is Pkcs9SigningTime st) fecha = st.SigningTime.ToLocalTime();
@@ -75,7 +77,7 @@ static class Verificador
         {
             return new { status = "unknown", errorCode = "PARSE_ERROR", message = ex.Message, certificate = (object?)null };
         }
-        return Cadena(cert, [], fecha, sellada);
+        return Cadena(cert, new X509Certificate2Collection(), fecha, sellada);
     }
 
     static object Cadena(X509Certificate2 cert, X509Certificate2Collection extra, DateTime? fecha, bool sellada)
@@ -96,7 +98,7 @@ static class Verificador
 
         if ((fallos & (X509ChainStatusFlags.UntrustedRoot | X509ChainStatusFlags.PartialChain)) != 0)
         {
-            bool propio = cert.SubjectName.RawData.AsSpan().SequenceEqual(cert.IssuerName.RawData);
+            bool propio = Compat.Iguales(cert.SubjectName.RawData, cert.IssuerName.RawData);
             string codigo = propio ? "SELF_SIGNED" : fallos.HasFlag(X509ChainStatusFlags.PartialChain) ? "UNKNOWN_ISSUER" : "UNTRUSTED_ISSUER";
             return new { status = "untrusted", errorCode = codigo, message = (string?)null, certificate = datos };
         }
@@ -123,7 +125,7 @@ static class Verificador
         notAfter = cert.NotAfter.ToString("o"),
         serialNumber = cert.SerialNumber,
         der = Convert.ToBase64String(cert.RawData),
-        chain = ch?.ChainElements.Select(e => new
+        chain = ch?.ChainElements.Cast<X509ChainElement>().Select(e => new
         {
             subjectCN = e.Certificate.GetNameInfo(X509NameType.SimpleName, false),
             issuerCN = e.Certificate.GetNameInfo(X509NameType.SimpleName, true),
@@ -131,8 +133,44 @@ static class Verificador
         }).ToArray(),
     };
 
+    /// <summary>
+    /// La hora del sello de tiempo que lleva la firma (atributo sin firmar), si lo lleva y es bueno: el sello es de
+    /// la firma (su huella coincide) y la firma de la autoridad de sellado es válida. Con BouncyCastle, que ya va con iText.
+    /// </summary>
+    internal static DateTime? FechaDelSello(byte[] der, byte[]? contenido)
+    {
+        try
+        {
+            var cms = contenido is null ? new CmsSignedData(der) : new CmsSignedData(new CmsProcessableByteArray(contenido), der);
+            foreach (SignerInformation firmante in cms.GetSignerInfos().GetSigners())
+            {
+                var atributo = firmante.UnsignedAttributes?[new DerObjectIdentifier(OidSelloEnFirma)];
+                if (atributo is null || atributo.AttrValues.Count == 0) continue;
+                var tok = new TimeStampToken(new CmsSignedData(atributo.AttrValues[0].GetEncoded()));
+                if (HuellaCoincide(tok, firmante.GetSignature()) && CertificadoTsa(tok) is not null)
+                    return tok.TimeStampInfo.GenTime.ToLocalTime();
+            }
+        }
+        catch (Exception) { }
+        return null;
+    }
+
+    static bool HuellaCoincide(TimeStampToken tok, byte[] datos) =>
+        Compat.Iguales(DigestUtilities.CalculateDigest(tok.TimeStampInfo.MessageImprintAlgOid, datos), tok.TimeStampInfo.GetMessageImprintDigest());
+
+    /// <summary>El certificado de la autoridad de sellado, si su firma del sello es válida.</summary>
+    static X509Certificate2? CertificadoTsa(TimeStampToken tok)
+    {
+        foreach (var c in tok.GetCertificates().EnumerateMatches(tok.SignerID))
+        {
+            try { tok.Validate(c); return new X509Certificate2(c.GetEncoded()); }
+            catch (Exception) { }
+        }
+        return null;
+    }
+
     /// <summary>El hueco de /Contents viene relleno de ceros por detrás: se deja solo la estructura DER.</summary>
-    static byte[] RecortarDer(byte[] b)
+    internal static byte[] RecortarDer(byte[] b)
     {
         if (b.Length < 2 || b[0] != 0x30) return b;
         int largo, cab;
@@ -145,15 +183,15 @@ static class Verificador
             for (int i = 0; i < n; i++) largo = (largo << 8) | b[2 + i];
             cab = 2 + n;
         }
-        return cab + largo <= b.Length ? b[..(cab + largo)] : b;
+        return cab + largo <= b.Length ? b.Trozo(0, cab + largo) : b;
     }
 
     /// <summary>Fecha PDF «D:20261024193000+02'00'».</summary>
     static DateTime? FechaPdf(string? s)
     {
         if (string.IsNullOrEmpty(s)) return null;
-        s = s.StartsWith("D:") ? s[2..] : s;
-        if (s.Length >= 14 && DateTime.TryParseExact(s[..14], "yyyyMMddHHmmss", CultureInfo.InvariantCulture, DateTimeStyles.AssumeLocal, out var d))
+        s = s!.StartsWith("D:") ? s.Substring(2) : s;
+        if (s.Length >= 14 && DateTime.TryParseExact(s.Substring(0, 14), "yyyyMMddHHmmss", CultureInfo.InvariantCulture, DateTimeStyles.AssumeLocal, out var d))
             return d;
         return null;
     }

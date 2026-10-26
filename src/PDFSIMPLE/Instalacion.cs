@@ -19,7 +19,7 @@ static class Instalacion
     static string Descripcion => Idioma.T("descripcion");
     static readonly string ClaveDesinstalar = @"Software\Microsoft\Windows\CurrentVersion\Uninstall\" + Nombre;
 
-    static string Exe => Environment.ProcessPath!;
+    static string Exe => Application.ExecutablePath;
     static string Carpeta => Path.GetDirectoryName(Exe)!;
     static string Acceso => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonPrograms), Nombre + ".lnk");
     static string AccesoEscritorio => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonDesktopDirectory), Nombre + ".lnk");
@@ -97,7 +97,7 @@ static class Instalacion
             return;
 
         foreach (var p in Process.GetProcessesByName(Nombre))
-            if (p.Id != Environment.ProcessId) try { p.Kill(); p.WaitForExit(3000); } catch { }
+            if (p.Id != Process.GetCurrentProcess().Id) try { p.Kill(); p.WaitForExit(3000); } catch { }
 
         var hklm = Registry.LocalMachine;
         hklm.DeleteSubKeyTree($@"Software\Classes\{ProgId}", false);
@@ -146,7 +146,7 @@ static class Instalacion
     public static void AbrirPredeterminadas()
     {
         // Instalado desde la Microsoft Store va en WindowsApps y Windows lo conoce por el paquete, no por el registro.
-        bool deLaStore = Exe.Contains(@"\WindowsApps\", StringComparison.OrdinalIgnoreCase);
+        bool deLaStore = Exe.Contiene(@"\WindowsApps\");
         try { Process.Start(new ProcessStartInfo(deLaStore ? "ms-settings:defaultapps" : $"ms-settings:defaultapps?registeredAppMachine={Nombre}") { UseShellExecute = true }); }
         catch { Process.Start(new ProcessStartInfo("ms-settings:defaultapps") { UseShellExecute = true }); }
     }

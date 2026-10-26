@@ -31,12 +31,13 @@ $makepri = Join-Path $herr.DirectoryName 'makepri.exe'
 Remove-Item $trabajo, $salida -Recurse -Force -ErrorAction SilentlyContinue
 
 # Los mismos .exe que el instalador (publicar.ps1 los deja en dist).
-if (-not (Test-Path "$dist\PDFSIMPLE.exe") -or -not (Test-Path "$dist\PDFSIMPLE-ARM64.exe")) { & (Join-Path $raiz 'publicar.ps1') }
+if (-not (Test-Path "$dist\PDFSIMPLE.exe")) { & (Join-Path $raiz 'publicar.ps1') }
 
 New-Item -ItemType Directory -Force $salida, "$trabajo\msix" | Out-Null
 $plantilla = Get-Content (Join-Path $PSScriptRoot 'AppxManifest.xml') -Raw -Encoding UTF8
 
-foreach ($a in @(@{ Arq = 'x64'; Exe = 'PDFSIMPLE.exe' }, @{ Arq = 'arm64'; Exe = 'PDFSIMPLE-ARM64.exe' })) {
+# El mismo .exe (AnyCPU, .NET Framework) en el paquete de cada procesador.
+foreach ($a in @(@{ Arq = 'x64'; Exe = 'PDFSIMPLE.exe' }, @{ Arq = 'arm64'; Exe = 'PDFSIMPLE.exe' })) {
     $dir = Join-Path $trabajo $a.Arq
     New-Item -ItemType Directory -Force $dir | Out-Null
     Copy-Item "$dist\$($a.Exe)" "$dir\PDFSIMPLE.exe"

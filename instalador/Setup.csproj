@@ -1,9 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <!--
-    PDFSIMPLE-Setup.exe: lleva dentro las dos versiones del programa (Intel/AMD y ARM) e instala la
-    que toca. Es .NET Framework 4.8, que ya viene con Windows 10 y 11: no necesita nada más.
-    Antes hay que generar las dos versiones en ..\dist (lo hace publicar.ps1).
+    PDFSIMPLE-Setup.exe: lleva dentro PDFSIMPLE.exe (un solo .exe para Intel/AMD y ARM, .NET Framework 4.8)
+    y lo instala en Archivos de programa. Antes hay que generarlo en ..\dist (lo hace publicar.ps1).
   -->
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
@@ -16,7 +15,7 @@
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <PlatformTarget>AnyCPU</PlatformTarget>
     <Prefer32Bit>false</Prefer32Bit>
-    <Version>1.0.1</Version>
+    <Version>1.1.0</Version>
     <Product>PDFSIMPLE</Product>
     <AssemblyTitle>Instalar PDFSIMPLE</AssemblyTitle>
     <Description>Instalar PDFSIMPLE</Description>
@@ -25,8 +24,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="..\dist\PDFSIMPLE.exe" LogicalName="x64.exe" />
-    <EmbeddedResource Include="..\dist\PDFSIMPLE-ARM64.exe" LogicalName="arm64.exe" />
+    <EmbeddedResource Include="..\dist\PDFSIMPLE.exe" LogicalName="PDFSIMPLE.exe" />
     <EmbeddedResource Include="..\src\PDFSIMPLE\iconos\PDFSIMPLE.ico" LogicalName="icono.ico" />
   </ItemGroup>
 
