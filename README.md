@@ -33,6 +33,8 @@ El instalador es .NET Framework 4.8 (ya viene con Windows 10 y 11) y el programa
 nada más (WebView2 viene con Windows; si faltara, el programa ofrece descargarlo). No están firmados con
 certificado de código, así que Windows puede avisar la primera vez («Más información» → «Ejecutar de todas formas»).
 
+**Microsoft Store** (firmado por Microsoft, sin avisos): ver [store/LEEME.md](store/LEEME.md); `store\empaquetar.ps1` genera el paquete.
+
 En `dist` quedan también las versiones sueltas, `PDFbyWilly.exe` (Intel/AMD) y `PDFbyWilly-ARM64.exe`, que se
 pueden usar sin instalar.
 

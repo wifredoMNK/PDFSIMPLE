@@ -1,5 +1,6 @@
 ﻿# Dibuja el icono: cuadrado rojo, «PDF» en blanco y debajo «BY WILLY», más fina, del mismo ancho.
-# Uso: .\herramientas\icono.ps1 src\PDFbyWilly
+# Uso: .\herramientas\icono.ps1 src\PDFbyWilly            → PDFbyWilly.ico
+#      .\herramientas\icono.ps1 src\PDFbyWilly store\Assets → además, los PNG que pide la Microsoft Store
 Add-Type -AssemblyName System.Drawing
 function Dibujar([int]$s) {
   $bmp = New-Object System.Drawing.Bitmap $s, $s
@@ -31,9 +32,25 @@ function Dibujar([int]$s) {
 }
 $dir = $args[0]
 $sizes = 16, 24, 32, 48, 64, 128, 256; $pngs = @()
-foreach ($s in $sizes) { $bmp = Dibujar $s; $ms = New-Object System.IO.MemoryStream; $bmp.Save($ms, [System.Drawing.Imaging.ImageFormat]::Png); $pngs += ,($ms.ToArray()); if ($s -eq 256) { $bmp.Save("$dir\icono-256.png") }; $bmp.Dispose() }
+foreach ($s in $sizes) { $bmp = Dibujar $s; $ms = New-Object System.IO.MemoryStream; $bmp.Save($ms, [System.Drawing.Imaging.ImageFormat]::Png); $pngs += ,($ms.ToArray()); $bmp.Dispose() }
 $out = New-Object System.IO.MemoryStream; $bw = New-Object System.IO.BinaryWriter $out
 $bw.Write([uint16]0); $bw.Write([uint16]1); $bw.Write([uint16]$sizes.Count); $off = 6 + 16 * $sizes.Count
 for ($i = 0; $i -lt $sizes.Count; $i++) { $s = $sizes[$i]; $b = if ($s -ge 256) { 0 } else { $s }; $bw.Write([byte]$b); $bw.Write([byte]$b); $bw.Write([byte]0); $bw.Write([byte]0); $bw.Write([uint16]1); $bw.Write([uint16]32); $bw.Write([uint32]$pngs[$i].Length); $bw.Write([uint32]$off); $off += $pngs[$i].Length }
 foreach ($d in $pngs) { $bw.Write($d) }
 [IO.File]::WriteAllBytes("$dir\PDFbyWilly.ico", $out.ToArray())
+$assets = $args[1]
+if ($assets) {
+  New-Item -ItemType Directory -Force $assets | Out-Null
+  function Png([string]$nombre, [int]$s) { $b = Dibujar $s; $b.Save((Join-Path $assets $nombre), [System.Drawing.Imaging.ImageFormat]::Png); $b.Dispose() }
+  foreach ($e in @(@(100, 1.0), @(150, 1.5), @(200, 2.0), @(400, 4.0))) {
+    $q = $e[0]; $f = $e[1]
+    Png "Square44x44Logo.scale-$q.png" ([int](44 * $f))
+    Png "Square150x150Logo.scale-$q.png" ([int](150 * $f))
+    Png "StoreLogo.scale-$q.png" ([int](50 * $f))
+  }
+  # Iconos de la barra de tareas y del menú Inicio, a su tamaño exacto (con y sin «placa»).
+  foreach ($t in 16, 24, 32, 48, 256) {
+    Png "Square44x44Logo.targetsize-$t.png" $t
+    Png "Square44x44Logo.targetsize-${t}_altform-unplated.png" $t
+  }
+}

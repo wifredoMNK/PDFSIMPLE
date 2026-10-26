@@ -145,7 +145,9 @@ static class Instalacion
     /// </summary>
     public static void AbrirPredeterminadas()
     {
-        try { Process.Start(new ProcessStartInfo($"ms-settings:defaultapps?registeredAppMachine={Nombre}") { UseShellExecute = true }); }
+        // Instalado desde la Microsoft Store va en WindowsApps y Windows lo conoce por el paquete, no por el registro.
+        bool deLaStore = Exe.Contains(@"\WindowsApps\", StringComparison.OrdinalIgnoreCase);
+        try { Process.Start(new ProcessStartInfo(deLaStore ? "ms-settings:defaultapps" : $"ms-settings:defaultapps?registeredAppMachine={Nombre}") { UseShellExecute = true }); }
         catch { Process.Start(new ProcessStartInfo("ms-settings:defaultapps") { UseShellExecute = true }); }
     }
 
