@@ -64,5 +64,7 @@ a la ventana lo abre (en otra ventana si ya hay uno).
   verifican y que un documento manipulado se detecta. `dotnet run -- comprobar archivo.pdf` enseña firmas, campos y
   anotaciones de cualquier PDF.
 
-**Licencia de iText:** es AGPL. Para repartir el programa hay que ofrecer también su código fuente a quien lo
-reciba (por ejemplo, publicando este repositorio); si no se quiere, hay que cambiar iText por otra librería de firma.
+## Licencia
+
+PDFSIMPLE se publica bajo la **GNU AGPL v3** (archivo `LICENSE`), la misma que iText, la librería de firma que
+lleva dentro. pdf.js es de Mozilla, con licencia Apache 2.0 (`src/PDFSIMPLE/web/pdfjs/LICENSE`).
