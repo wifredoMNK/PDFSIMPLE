@@ -29,9 +29,48 @@
 
 /* ---------------------------------------------------------------- barra de iconos */
 
-/* Abrir, Guardar y Guardar como, separados de lo demás por el hueco de un icono. */
-#lectorArchivo {
-  margin-inline-end: 28px;
+/* Toda la barra va a la izquierda (el centro de pdf.js, la página y el zoom, se va abajo). */
+#toolbarViewerMiddle {
+  display: none !important;
+}
+
+#toolbarViewerLeft {
+  min-width: 0;
+}
+
+/* Abajo en el centro, flotando sobre el documento: ↑ ↓, página x de x y el zoom. Se centra en lo que queda
+   a la derecha del panel lateral cuando está abierto. */
+#lectorPie {
+  position: fixed;
+  bottom: 14px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 20;
+  height: var(--toolbar-height, 32px);
+  padding: 0 8px;
+  gap: 2px;
+  background: var(--toolbar-bg-color, #f9f9fa);
+  border: 1px solid var(--separator-color, rgb(0 0 0 / 0.15));
+  border-radius: 8px;
+  box-shadow: 0 2px 12px rgb(0 0 0 / 0.18);
+  transition-property: left;
+  transition-duration: var(--sidebar-transition-duration);
+  transition-timing-function: var(--sidebar-transition-timing-function);
+}
+
+#outerContainer.viewsManagerOpen #lectorPie {
+  left: calc(50% + var(--viewsManager-width, 0px) / 2);
+}
+
+#outerContainer.pdfPresentationMode #lectorPie {
+  display: none;
+}
+
+/* En el menú «»», las herramientas con desplegable ocupan la fila entera, como las demás. */
+.lectorSeccion:not(.toolbarHorizontalGroup) .toolbarButtonWithContainer {
+  width: 100%;
+  height: auto;
+  aspect-ratio: auto;
 }
 
 /* El panel lateral (miniaturas, esquema…) no tiene botón en la barra: se abre y se cierra con un triángulo
@@ -210,7 +249,7 @@ body.lector-esperando * {
 #lectorAviso {
   position: fixed;
   left: 50%;
-  bottom: 24px;
+  bottom: 62px;
   transform: translate(-50%, 20px);
   z-index: 100001;
   max-width: min(640px, calc(100vw - 32px));

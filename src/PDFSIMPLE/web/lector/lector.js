@@ -161,14 +161,16 @@
 
   // ------------------------------------------------------------ la barra de iconos
   //
-  // [Abrir][Guardar][Guardar como]  ·hueco·  buscar, páginas      zoom      [Firmar][✓ firmas] | editores |
-  // imprimir | …todo lo que pdf.js tenía en el menú «»», por secciones… [‹›][»]
+  // [Abrir][Guardar][Guardar como] | imprimir | imagen, texto, dibujar, firma manuscrita, selección, mano |
+  // girar ← → | Firmar con certificado + ✓ firmas | desplazamiento | vista de libro | lo demás …   [文A][‹›][»]
   //
-  // Lo del menú «»» pasa a la barra; la flecha ‹› lo pliega o despliega (se recuerda) y lo que no cabe al
-  // estrechar la ventana vuelve al menú «»», que solo se ve cuando tiene algo.
+  // Abajo en el centro, flotando: ↑ ↓ página x de x | zoom.
+  // Por defecto se ve todo. Al estrechar la ventana las secciones van pasando, desde la derecha, al menú «»»,
+  // que solo aparece cuando tiene algo. La flecha ‹› recoge en él las secciones que antes eran del menú
+  // (girar, desplazamiento, vista de libro, lo demás) y se recuerda.
 
   const $ = id => document.getElementById(id);
-  const CLAVE_PLEGADA = "lector.barraPlegada";
+  const CLAVE_PLEGADA = "lector.barraRecogida"; // sin guardar: todo a la vista
   let secciones = [];
   let extras = null;
   let plegar = null;
@@ -188,7 +190,9 @@
   }
 
   function añadirBotones() {
-    // Abrir, Guardar y Guardar como, lo primero a la izquierda, con un hueco hasta lo demás.
+    const izquierda = $("toolbarViewerLeft");
+
+    // Abrir, Guardar y Guardar como: lo primero, siempre a la vista.
     const descargar = $("downloadButton");
     descargar.title = t("guardar");
     const archivo = document.createElement("div");
@@ -196,7 +200,6 @@
     archivo.className = "toolbarHorizontalGroup";
     archivo.append(boton("lectorAbrir", t("abrir"), t("abrirCorto"), abrir), descargar,
       boton("lectorGuardarComo", t("guardarComo"), t("guardarComo"), () => guardar(true)));
-    $("toolbarViewerLeft").prepend(archivo);
 
     // El panel lateral se abre y se cierra con un triángulo en su borde, no con el botón de la barra.
     const pestaña = document.createElement("button");
@@ -206,39 +209,42 @@
     pestaña.addEventListener("click", () => $("viewsManagerToggleButton").click());
     $("mainContainer").append(pestaña);
 
-    // Firmar con certificado, junto al ✓ que dice si las firmas del documento son válidas.
+    // Abajo en el centro: ↑ ↓, página x de x y el zoom. Sigue dentro de la barra (para sus estilos) pero fijo abajo.
+    const pie = document.createElement("div");
+    pie.id = "lectorPie";
+    pie.className = "toolbarHorizontalGroup";
+    const flechas = $("previous").parentElement;
+    const pagina = $("numPages").parentElement;
+    for (const el of [flechas, pagina]) el.classList.remove("hiddenSmallView", "hiddenMediumView");
+    pie.append(flechas, pagina, separador(), ...$("toolbarViewerMiddle").children);
+    $("toolbarContainer").append(pie);
+
+    // Las secciones, en este orden. «plegable»: la flecha ‹› las recoge en el menú.
     const firmarBtn = boton("lectorFirmar", t("firmarTitulo"), t("firmar"), firmarConCertificado);
-    $("signatureProperties").before(firmarBtn);
-    $("signatureProperties").after(separador());
-
-    // Imprimir se queda siempre a la vista: pdf.js lo escondía al estrechar la ventana.
-    const imprimir = $("printButton").parentElement;
-    imprimir.classList.remove("hiddenMediumView");
-    imprimir.nextElementSibling?.classList.remove("hiddenMediumView");
-
-    // Lo que había en el menú «»», en secciones.
     const predeterminado = botonMenu("lectorPredeterminado", t("predeterminado", APP), () => {
       api("predeterminado")
         .then(r => r.ok && aviso(t("comoPredeterminado", APP), false, 30000))
         .catch(e => aviso(e.message, true));
     });
     const grupos = [
-      [$("presentationMode")],
-      [$("firstPage"), $("lastPage")],
-      [$("pageRotateCcw"), $("pageRotateCw")],
-      [$("cursorToolButtons")],
-      [$("scrollModeButtons")],
-      [$("spreadModeButtons")],
-      [$("documentProperties"), predeterminado],
+      { plegable: false, els: [$("printButton")] },
+      { plegable: false, els: [$("editorStamp"), $("editorFreeText"), $("editorInk"), $("editorSignature"), $("cursorSelectTool"), $("cursorHandTool")] },
+      { plegable: true, els: [$("pageRotateCcw"), $("pageRotateCw")] },
+      { plegable: false, els: [firmarBtn, $("signatureProperties")] },
+      { plegable: true, els: [$("scrollModeButtons")] },
+      { plegable: true, els: [$("spreadModeButtons")] },
+      { plegable: true, els: [$("editorHighlight"), $("editorComment"), $("viewFindButton").parentElement, $("presentationMode"),
+                             $("firstPage"), $("lastPage"), $("documentProperties"), predeterminado] },
     ];
 
-    // Lo que queda en el menú (duplicados de Abrir/Imprimir/Guardar, marcador…) se aparta sin borrarlo:
+    // Lo que no se usa (duplicados del menú, separadores y huecos de pdf.js…) se aparta sin borrarlo:
     // pdf.js sigue usando esos elementos.
-    const menu = $("secondaryToolbarButtonContainer");
     const apartado = document.createElement("div");
     apartado.hidden = true;
-    for (const g of grupos) for (const el of g) el.remove();
-    apartado.append(...menu.children);
+    for (const g of grupos) for (const el of g.els) el.remove();
+    apartado.append(...$("secondaryToolbarButtonContainer").children);
+    for (const el of [...izquierda.children, ...$("toolbarViewerRight").children])
+      if (el.id !== "viewsManager" && el.id !== "secondaryToolbarToggle") apartado.append(el);
     document.body.append(apartado);
 
     extras = document.createElement("div");
@@ -247,24 +253,23 @@
     secciones = grupos.map(g => {
       const s = document.createElement("div");
       s.className = "lectorSeccion toolbarHorizontalGroup";
-      s.append(...g);
+      s.dataset.plegable = g.plegable ? "1" : "";
+      s.append(...g.els.filter(Boolean));
       return s;
     });
+    izquierda.prepend(archivo, extras);
 
     plegar = boton("lectorPlegar", "", "", () => {
       try { localStorage.setItem(CLAVE_PLEGADA, estaPlegada() ? "0" : "1"); } catch {}
       colocar();
     });
-    const menuToggle = $("secondaryToolbarToggle");
-    menuToggle.before(extras, selectorIdioma(), plegar);
+    $("secondaryToolbarToggle").before(selectorIdioma(), plegar);
 
     colocar();
     new ResizeObserver(() => requestAnimationFrame(colocar)).observe($("toolbarContainer"));
     app.eventBus.on("pagesloaded", () => requestAnimationFrame(colocar));
-    document.addEventListener("localized", () => requestAnimationFrame(colocar));
     setTimeout(colocar, 800); // los textos traducidos llegan algo después y cambian anchos
   }
-
   /** El icono de idiomas (文A) con su menú: español, francés, inglés. */
   function selectorIdioma() {
     const caja = document.createElement("div");
@@ -319,11 +324,9 @@
 
   function desborda() {
     const barra = $("toolbarViewer");
-    const izq = $("toolbarViewerLeft").getBoundingClientRect();
-    const medio = $("toolbarViewerMiddle");
+    const fin = extras.getBoundingClientRect().right; // donde acaban de verdad los iconos de la izquierda
     const der = $("toolbarViewerRight").getBoundingClientRect();
-    const limite = (medio.offsetParent ? medio.getBoundingClientRect().right : izq.right) + 6;
-    return barra.scrollWidth > barra.clientWidth + 1 || der.left < limite || der.right > barra.getBoundingClientRect().right + 1;
+    return barra.scrollWidth > barra.clientWidth + 1 || fin > der.left - 4 || der.right > Math.min(barra.getBoundingClientRect().right, document.documentElement.clientWidth) + 1;
   }
 
   let recolocando = false;
@@ -340,10 +343,12 @@
       extras.append(separador(), s);
     }
     const alMenu = [];
-    for (let i = secciones.length - 1; i >= 0 && (plegada || desborda()); i--) {
-      secciones[i].previousElementSibling?.remove();
-      secciones[i].remove();
-      alMenu.unshift(secciones[i]);
+    for (let i = secciones.length - 1; i >= 0; i--) {
+      const s = secciones[i];
+      if (!((plegada && s.dataset.plegable) || desborda())) continue;
+      s.previousElementSibling?.remove();
+      s.remove();
+      alMenu.unshift(s);
     }
     menu.replaceChildren();
     alMenu.forEach((s, i) => {
@@ -357,6 +362,13 @@
     });
     $("secondaryToolbarToggle").hidden = alMenu.length === 0;
     if (alMenu.length === 0) $("secondaryToolbar").classList.add("hidden");
+
+    // Los desplegables de cada herramienta (colores, grosor, buscar…) se abren hacia donde haya sitio.
+    for (const d of extras.querySelectorAll(".doorHanger, .doorHangerRight")) {
+      const aLaDerecha = d.parentElement.getBoundingClientRect().left > window.innerWidth / 2;
+      d.classList.toggle("doorHangerRight", aLaDerecha);
+      d.classList.toggle("doorHanger", !aLaDerecha);
+    }
 
     // La flecha: «›» recoge las secciones hacia el borde; «‹» las saca.
     plegar.classList.toggle("plegada", plegada);
