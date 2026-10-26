@@ -8,3 +8,4 @@ dist/
 herramientas/sdk/
 store/obj/
 /*.msixbundle
+/listingData-*.csv

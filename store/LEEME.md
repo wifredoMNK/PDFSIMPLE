@@ -73,6 +73,15 @@ Sale `dist\store\PDFSIMPLE_1.0.0.0.msixbundle` (Intel/AMD y ARM dentro; español
 
 **Enviar para certificación.** Microsoft la revisa (normalmente de 1 a 3 días) y, si la aprueba, se publica.
 
+## Ficha de la Store (textos e imágenes)
+
+`store\ficha` se sube entera: Descripciones de Store → **Importar descripciones → Cargar carpeta**. Lleva
+`descripciones.csv` (el formato de «Exportar descripciones», relleno en español, francés e inglés: descripción,
+descripción breve, características, palabras clave, notas de la versión, editor y licencia), dos capturas por idioma
+(`es-1.png`, `es-2.png`…) y los logos de 300 y 1080.
+
+Las capturas se hacen con el formulario de ejemplo de cada idioma (`pruebas`: `dotnet run -- demo es|fr|en archivo.pdf`,
+firmado con un certificado inventado) y el programa abierto con `--vista=zoom=page-fit&panel=0|1&barra=completa`.
 ## Política de privacidad
 
 Publicada en <https://menork.es/politica-de-privacidad/>. El archivo está en el proyecto de la web:

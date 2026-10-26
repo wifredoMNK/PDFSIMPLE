@@ -13,7 +13,7 @@
     <ApplicationIcon>iconos\PDFSIMPLE.ico</ApplicationIcon>
     <ApplicationHighDpiMode>PerMonitorV2</ApplicationHighDpiMode>
     <SatelliteResourceLanguages>es</SatelliteResourceLanguages>
-    <Version>1.0.0</Version>
+    <Version>1.0.1</Version>
     <Product>PDFSIMPLE</Product>
     <AssemblyTitle>PDFSIMPLE</AssemblyTitle>
     <Description>Lector de PDF sin publicidad: formularios, texto y firma digital</Description>

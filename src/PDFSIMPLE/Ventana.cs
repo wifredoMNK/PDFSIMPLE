@@ -24,8 +24,11 @@ sealed class Ventana : Form
     int version;           // cambia en cada carga para que el visor no tire de caché
     bool cerrarYa;
 
-    public Ventana(string? ruta)
+    readonly string? vista;
+
+    public Ventana(string? ruta, string? vista = null)
     {
+        this.vista = vista;
         Text = Marca.Nombre;
         Icon = Recursos.Icono();
         KeyPreview = true;
@@ -212,7 +215,7 @@ sealed class Ventana : Form
             // Se engancha lo nuestro sin tocar el viewer.html de pdf.js, para poder actualizarlo tal cual.
             string html = Encoding.UTF8.GetString(contenido).Replace(
                 "<script src=\"viewer.mjs\" type=\"module\"></script>",
-                $"<meta name=\"lector-app\" content=\"{Marca.Nombre}\" />\n  <meta name=\"lector-idioma\" content=\"{Idioma.Actual}\" />\n  <meta name=\"lector-idioma-pdfjs\" content=\"{Idioma.DePdfjs}\" />\n  <link rel=\"stylesheet\" href=\"../../lector/lector.css\" />\n  <script src=\"../../lector/lector.js\"></script>\n  <script src=\"viewer.mjs\" type=\"module\"></script>");
+                $"<meta name=\"lector-app\" content=\"{Marca.Nombre}\" />\n  <meta name=\"lector-vista\" content=\"{System.Net.WebUtility.HtmlEncode(vista ?? "")}\" />\n  <meta name=\"lector-idioma\" content=\"{Idioma.Actual}\" />\n  <meta name=\"lector-idioma-pdfjs\" content=\"{Idioma.DePdfjs}\" />\n  <link rel=\"stylesheet\" href=\"../../lector/lector.css\" />\n  <script src=\"../../lector/lector.js\"></script>\n  <script src=\"viewer.mjs\" type=\"module\"></script>");
             contenido = Encoding.UTF8.GetBytes(html);
         }
         else if (camino == "pdfjs/web/locale/es-ES/viewer.ftl")

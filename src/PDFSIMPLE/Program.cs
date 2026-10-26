@@ -32,7 +32,9 @@ static class Program
         }
 
         string? ruta = args.FirstOrDefault(a => !a.StartsWith("--"));
-        Application.Run(new Ventana(ruta is null ? null : Path.GetFullPath(ruta)));
+        // «--vista=zoom=page-fit&panel=1&barra=completa»: vista inicial (para las capturas de la Store; ver lector.js).
+        string? vista = args.FirstOrDefault(a => a.StartsWith("--vista="))?["--vista=".Length..];
+        Application.Run(new Ventana(ruta is null ? null : Path.GetFullPath(ruta), vista));
         return 0;
     }
 

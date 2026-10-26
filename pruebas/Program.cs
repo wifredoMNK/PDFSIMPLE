@@ -29,6 +29,58 @@ if (args is ["comprobar", var archivoAComprobar])
     return 0;
 }
 
+// «dotnet run -- demo es|fr|en archivo.pdf»: formulario de ejemplo en ese idioma, relleno y firmado con un
+// certificado de prueba de nombre inventado. Es lo que sale en las capturas de la Microsoft Store.
+if (args is ["demo", var lengua, var archivoDemo])
+{
+    var x = lengua switch
+    {
+        "fr" => new { Titulo = "DEMANDE D'INSCRIPTION", Nombre = "Nom et prénom", NombreV = "CLAIRE DUBOIS", Id = "N° d'identité", IdV = "FR 12 345 678",
+                      Dir = "Adresse", DirV = "12 RUE DE LA PAIX · PARIS", Zona = "Région", ZonaV = "Île-de-France", Zonas = new[] { "Île-de-France", "Bretagne", "Normandie" },
+                      Acepto = "J'accepte les conditions", Obs = "Observations", ObsV = "Formulaire rempli et signé avec PDFSIMPLE.", Pie = "Signature du demandeur :" },
+        "en" => new { Titulo = "APPLICATION FORM", Nombre = "Full name", NombreV = "JOHN SMITH", Id = "ID number", IdV = "AB 12 34 56 C",
+                      Dir = "Address", DirV = "12 HIGH STREET · LONDON", Zona = "Region", ZonaV = "Greater London", Zonas = new[] { "Greater London", "Kent", "Surrey" },
+                      Acepto = "I accept the terms", Obs = "Notes", ObsV = "Form filled in and signed with PDFSIMPLE.", Pie = "Applicant's signature:" },
+        _ => new { Titulo = "SOLICITUD DE ALTA", Nombre = "Nombre y apellidos", NombreV = "LAURA MARTÍNEZ PONS", Id = "NIF", IdV = "12345678Z",
+                   Dir = "Dirección", DirV = "C/ MAJOR, 12 · MAÓ", Zona = "Provincia", ZonaV = "Illes Balears", Zonas = new[] { "Illes Balears", "Barcelona", "Madrid" },
+                   Acepto = "Acepto las condiciones", Obs = "Observaciones", ObsV = "Documento rellenado y firmado con PDFSIMPLE.", Pie = "Firma del solicitante:" },
+    };
+    var ms = new MemoryStream();
+    using (var doc = new PdfDocument(new PdfWriter(ms)))
+    {
+        var pag = doc.AddNewPage(iText.Kernel.Geom.PageSize.A4);
+        var normal = PdfFontFactory.CreateFont(iText.IO.Font.Constants.StandardFonts.HELVETICA);
+        var negrita = PdfFontFactory.CreateFont(iText.IO.Font.Constants.StandardFonts.HELVETICA_BOLD);
+        var c = new PdfCanvas(pag);
+        c.SetFillColor(new iText.Kernel.Colors.DeviceRgb(214, 32, 39)).Rectangle(0, 800, 595, 42).Fill();
+        c.BeginText().SetFillColor(iText.Kernel.Colors.ColorConstants.WHITE).SetFontAndSize(negrita, 18).MoveText(60, 814).ShowText(x.Titulo).EndText();
+        c.BeginText().SetFillColor(iText.Kernel.Colors.ColorConstants.BLACK).SetFontAndSize(normal, 11)
+            .MoveText(60, 742).ShowText(x.Nombre + ":").MoveText(0, -40).ShowText(x.Id + ":").MoveText(0, -40).ShowText(x.Dir + ":")
+            .MoveText(0, -40).ShowText(x.Zona + ":").MoveText(0, -40).ShowText(x.Acepto).MoveText(0, -40).ShowText(x.Obs + ":")
+            .MoveText(0, -150).ShowText(x.Pie).EndText();
+        var form = PdfFormCreator.GetAcroForm(doc, true);
+        void Texto(string n, Rectangle r, string v) { var f = new TextFormFieldBuilder(doc, n).SetWidgetRectangle(r).CreateText(); f.SetValue(v); form.AddField(f); }
+        Texto("nombre", new Rectangle(200, 736, 320, 20), x.NombreV);
+        Texto("id", new Rectangle(200, 696, 160, 20), x.IdV);
+        Texto("direccion", new Rectangle(200, 656, 320, 20), x.DirV);
+        var zona = new ChoiceFormFieldBuilder(doc, "zona").SetWidgetRectangle(new Rectangle(200, 616, 200, 20)).SetOptions(x.Zonas).CreateComboBox();
+        zona.SetValue(x.ZonaV); form.AddField(zona);
+        var acepto = new CheckBoxFormFieldBuilder(doc, "acepto").SetWidgetRectangle(new Rectangle(260, 578, 16, 16)).CreateCheckBox();
+        acepto.SetValue("Yes"); form.AddField(acepto);
+        var obs = new TextFormFieldBuilder(doc, "observaciones").SetWidgetRectangle(new Rectangle(60, 450, 460, 80)).CreateMultilineText();
+        obs.SetValue(x.ObsV); form.AddField(obs);
+    }
+    using var rsaDemo = RSA.Create(2048);
+    var reqDemo = new CertificateRequest($"CN={x.NombreV}, C=ES", rsaDemo, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
+    using var autoDemo = reqDemo.CreateSelfSigned(DateTimeOffset.Now.AddDays(-1), DateTimeOffset.Now.AddYears(1));
+    var certDemo = X509CertificateLoader.LoadPkcs12(autoDemo.Export(X509ContentType.Pfx, "demo"), "demo", X509KeyStorageFlags.EphemeralKeySet);
+    Ajustes.Actual.Idioma = lengua; // el texto de la firma visible, en ese idioma (no se guarda)
+    var firmado = Firmador.Firmar(ms.ToArray(), certDemo, 1, [300, 250, 520, 310]);
+    File.WriteAllBytes(archivoDemo, firmado.Pdf);
+    Console.WriteLine(archivoDemo + (firmado.Aviso is null ? "" : "  (" + firmado.Aviso + ")"));
+    return 0;
+}
+
 string salida = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "salida"));
 Directory.CreateDirectory(salida);
 int fallos = 0;

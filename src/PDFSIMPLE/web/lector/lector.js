@@ -12,6 +12,8 @@
   const IDIOMA = document.querySelector("meta[name=lector-idioma]")?.content || "es";
   const IDIOMA_PDFJS = document.querySelector("meta[name=lector-idioma-pdfjs]")?.content || "es-ES";
   const IDIOMAS = [["es", "Español"], ["fr", "Français"], ["en", "English"]];
+  // «--vista=…» del programa: zoom=…, panel=1|0 (miniaturas abiertas o cerradas), barra=completa (sin recoger). Para capturas.
+  const VISTA = new URLSearchParams(document.querySelector("meta[name=lector-vista]")?.content || "");
 
   // Los textos de lo nuestro: [español, francés, inglés]. Los de pdf.js vienen en sus propias traducciones.
   const TEXTOS = {
@@ -270,8 +272,15 @@
     colocar();
     new ResizeObserver(() => requestAnimationFrame(colocar)).observe($("toolbarContainer"));
     app.eventBus.on("pagesloaded", () => requestAnimationFrame(colocar));
+    app.eventBus.on("pagesloaded", aplicarVista, { once: true });
     setTimeout(colocar, 800); // los textos traducidos llegan algo después y cambian anchos
   }
+  function aplicarVista() {
+    if (VISTA.get("zoom")) app.pdfViewer.currentScaleValue = VISTA.get("zoom");
+    const abierto = $("outerContainer").classList.contains("viewsManagerOpen");
+    if ((VISTA.get("panel") === "1" && !abierto) || (VISTA.get("panel") === "0" && abierto)) $("viewsManagerToggleButton").click();
+  }
+
   /** El icono de idiomas (文A) con su menú: español, francés, inglés. */
   function selectorIdioma() {
     const caja = document.createElement("div");
@@ -326,6 +335,7 @@
   }
 
   function estaPlegada() {
+    if (VISTA.get("barra") === "completa") return false;
     try { return localStorage.getItem(CLAVE_PLEGADA) === "1"; } catch { return false; }
   }
 

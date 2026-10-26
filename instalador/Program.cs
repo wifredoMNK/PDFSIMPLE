@@ -184,7 +184,9 @@ namespace PDFSIMPLESetup
 
             instalar.Text = actualizar ? Textos.T("actualizar") : Textos.T("instalar");
             instalar.Click += (s, e) => Instalar();
-            var cancelar = new Button { Text = Textos.T("cancelar"), AutoSize = true, DialogResult = DialogResult.Cancel };
+            // La ventana no es un diálogo (va con Application.Run): los botones la cierran ellos.
+            var cancelar = new Button { Text = Textos.T("cancelar"), AutoSize = true };
+            cancelar.Click += (s, e) => Close();
             paso1.Controls.AddRange(new Control[] { titulo, lema, equipo, donde, Hueco(), escritorio, anclar, notaAnclar, estado, Botones(cancelar, instalar) });
             AcceptButton = instalar;
             CancelButton = cancelar;
@@ -288,7 +290,8 @@ namespace PDFSIMPLESetup
                 filaPregunta.Visible = false;
             };
 
-            var terminar = new Button { Text = Textos.T("terminar"), AutoSize = true, DialogResult = DialogResult.OK };
+            var terminar = new Button { Text = Textos.T("terminar"), AutoSize = true };
+            terminar.Click += (s, e) => Close();
             paso2.Controls.AddRange(new Control[] { hecho, pregunta, filaPregunta, instrucciones });
             if (anclar.Checked)
             {

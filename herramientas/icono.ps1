@@ -1,10 +1,12 @@
 ﻿# Dibuja el icono: cuadrado rojo, «PDF» en blanco y debajo otra palabra más fina, del mismo ancho.
 # Uso:
-#   .\herramientas\icono.ps1 -Nombre PDFSIMPLE -Debajo 'SIMPLE' -Store store\Assets  → src\PDFSIMPLE\iconos\PDFSIMPLE.ico y los PNG de la Store
+#   .\herramientas\icono.ps1 -Nombre PDFSIMPLE -Debajo 'SIMPLE' -Store store\Assets -Ficha store\ficha
+#     → src\PDFSIMPLE\iconos\PDFSIMPLE.ico, los PNG del paquete de la Store y los logos de su ficha
 param(
   [Parameter(Mandatory)] [string]$Nombre,
   [Parameter(Mandatory)] [string]$Debajo,
-  [string]$Store
+  [string]$Store,
+  [string]$Ficha
 )
 $ErrorActionPreference = 'Stop'
 Add-Type -AssemblyName System.Drawing
@@ -62,4 +64,11 @@ if ($Store) {
     Png "Square44x44Logo.targetsize-$t.png" $t
     Png "Square44x44Logo.targetsize-${t}_altform-unplated.png" $t
   }
+}
+
+# Logos de la ficha de la Store (se suben con el CSV de las descripciones).
+if ($Ficha) {
+  $dir = if ([IO.Path]::IsPathRooted($Ficha)) { $Ficha } else { Join-Path $raiz $Ficha }
+  New-Item -ItemType Directory -Force $dir | Out-Null
+  foreach ($s in 300, 1080) { $b = Dibujar $s; $b.Save((Join-Path $dir "StoreLogo${s}x${s}.png"), [System.Drawing.Imaging.ImageFormat]::Png); $b.Dispose() }
 }

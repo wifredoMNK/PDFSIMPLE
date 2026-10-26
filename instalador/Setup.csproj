@@ -16,7 +16,7 @@
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <PlatformTarget>AnyCPU</PlatformTarget>
     <Prefer32Bit>false</Prefer32Bit>
-    <Version>1.0.0</Version>
+    <Version>1.0.1</Version>
     <Product>PDFSIMPLE</Product>
     <AssemblyTitle>Instalar PDFSIMPLE</AssemblyTitle>
     <Description>Instalar PDFSIMPLE</Description>

@@ -10,6 +10,11 @@ $proyecto = "$PSScriptRoot\src\PDFSIMPLE\PDFSIMPLE.csproj"
 $dist = "$PSScriptRoot\dist"
 New-Item -ItemType Directory -Force $dist | Out-Null
 
+# Siempre desde cero: si el reloj del equipo retrocede, la compilación incremental cree que todo está al día
+# y mete los archivos del visor antiguos (pasó el 26/10/2026).
+Remove-Item "$PSScriptRoot\src\PDFSIMPLE\obj\Release", "$PSScriptRoot\src\PDFSIMPLE\bin\Release", "$PSScriptRoot\src\PDFSIMPLE\bin\publicar",
+            "$PSScriptRoot\instalador\obj\Release", "$PSScriptRoot\instalador\bin\Release" -Recurse -Force -ErrorAction SilentlyContinue
+
 foreach ($rid in 'win-x64', 'win-arm64') {
     $tmp = "$PSScriptRoot\src\PDFSIMPLE\bin\publicar\$rid"
     dotnet publish $proyecto -c Release -r $rid --self-contained true -o $tmp --disable-build-servers -m:1 `
