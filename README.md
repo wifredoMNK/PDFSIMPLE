@@ -57,7 +57,7 @@ a la ventana lo abre (en otra ventana si ya hay uno).
   - `Idioma.cs`: textos del programa en los tres idiomas (los del visor, en `lector.js`).
   - `Firmador.cs`: firma con iText 9. `Verificador.cs`: comprueba firmas con lo que trae .NET y la cadena de
     confianza de Windows. `Instalacion.cs`: alta y baja en Windows (`--registrar`, `--desinstalar`).
-- `instalador`: `PDFSIMPLE-Setup.exe` (en español).
+- `instalador`: `PDFSIMPLE-Setup.exe`, en el idioma de Windows (español, francés o inglés).
 - `store`: manifiesto, iconos y `empaquetar.ps1` de la Microsoft Store.
 - `herramientas/icono.ps1`: dibuja el icono (cuadrado rojo, «PDF» y debajo «SIMPLE») y los de la Store.
 - `pruebas`: `dotnet run` genera un formulario, lo firma dos veces con un certificado de prueba y comprueba que se

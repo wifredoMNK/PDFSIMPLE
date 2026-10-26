@@ -235,6 +235,8 @@
       { plegable: true, els: [$("spreadModeButtons")] },
       { plegable: true, els: [$("editorHighlight"), $("editorComment"), $("viewFindButton").parentElement, $("presentationMode"),
                              $("firstPage"), $("lastPage"), $("documentProperties"), predeterminado] },
+      // El idioma, lo último: se usa poco y es lo primero que se va al menú.
+      { plegable: true, els: [selectorIdioma(), listaIdiomas()] },
     ];
 
     // Lo que no se usa (duplicados del menú, separadores y huecos de pdf.js…) se aparta sin borrarlo:
@@ -263,7 +265,7 @@
       try { localStorage.setItem(CLAVE_PLEGADA, estaPlegada() ? "0" : "1"); } catch {}
       colocar();
     });
-    $("secondaryToolbarToggle").before(selectorIdioma(), plegar);
+    $("secondaryToolbarToggle").before(plegar);
 
     colocar();
     new ResizeObserver(() => requestAnimationFrame(colocar)).observe($("toolbarContainer"));
@@ -296,6 +298,18 @@
     return caja;
   }
 
+  /** Los tres idiomas como opciones sueltas: es lo que se ve cuando la sección está en el menú «»». */
+  function listaIdiomas() {
+    const lista = document.createElement("div");
+    lista.id = "lectorIdiomasEnMenu";
+    for (const [codigo, nombre] of IDIOMAS) {
+      const b = botonMenu("lectorIdiomaMenu-" + codigo, nombre, () => cambiarIdioma(codigo));
+      b.classList.toggle("toggled", codigo === IDIOMA);
+      lista.append(b);
+    }
+    return lista;
+  }
+
   async function cambiarIdioma(codigo) {
     $("lectorIdiomaMenu").classList.add("hidden");
     if (codigo === IDIOMA) return;
@@ -318,7 +332,9 @@
   /** En la barra, iconos; en el menú, con su texto. */
   function modo(seccion, enBarra) {
     seccion.classList.toggle("toolbarHorizontalGroup", enBarra);
-    for (const b of seccion.querySelectorAll(".toolbarButton")) b.classList.toggle("labeled", !enBarra);
+    // Solo los botones de la sección: los de dentro de sus desplegables (colores, buscar, idiomas…) no se tocan.
+    for (const b of seccion.querySelectorAll(".toolbarButton"))
+      if (!b.parentElement.closest(".editorParamsToolbar, .menu, #findbar")) b.classList.toggle("labeled", !enBarra);
     for (const g of seccion.querySelectorAll("[role=radiogroup]")) g.classList.toggle("toolbarHorizontalGroup", enBarra);
   }
 

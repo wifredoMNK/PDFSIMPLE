@@ -157,8 +157,20 @@
   width: 160px;
 }
 
-#lectorIdiomaMenu .toolbarButton::before {
+#lectorIdiomaMenu .toolbarButton::before,
+#lectorIdiomasEnMenu .toolbarButton::before {
   display: none;
+}
+
+/* En la barra, el icono 文A con su desplegable; en el menú «»», los tres idiomas sueltos. */
+.lectorSeccion.toolbarHorizontalGroup #lectorIdiomasEnMenu,
+.lectorSeccion:not(.toolbarHorizontalGroup) #lectorIdioma {
+  display: none;
+}
+
+#lectorIdiomasEnMenu {
+  display: flex;
+  flex-direction: column;
 }
 
 /* En el menú «»», cada sección en columna, con el texto de cada botón. */
