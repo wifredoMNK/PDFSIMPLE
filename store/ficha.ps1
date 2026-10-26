@@ -40,10 +40,12 @@ $textos = @{
   }
 }
 
+# Sin saltos de línea dentro de los campos: el importador de Partner Center no los acepta bien.
+function UnaLinea([string]$v) { return (($v -replace "`n+• ", " ") -replace "`n+", " ").Trim() }
+
 function Valor([string]$campo, $x, [bool]$imagenes) {
   switch -regex ($campo) {
-    '^Description$' { return $x.Description }
-    '^ShortDescription$' { return $x.ShortDescription }
+    '^Description$' { return UnaLinea $x.Description }
     '^ReleaseNotes$' { return $x.ReleaseNotes }
     '^DevStudio$' { return 'WILLY MNK' }
     '^CopyrightTrademarkInformation$' { return '© 2026 WILLY MNK. pdf.js © Mozilla (Apache 2.0).' }

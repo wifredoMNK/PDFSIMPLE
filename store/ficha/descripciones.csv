@@ -1,38 +1,11 @@
 ﻿Field,ID,Type (Tipo),default,es-es,en-us,fr-fr
-Description,2,Texto,,"PDFSIMPLE es un lector de PDF para Windows sin publicidad y sin cuentas.
-
-• Rellena formularios PDF y guarda los datos en el propio documento.
-• Escribe a máquina en cualquier parte de la página.
-• Añade tu firma manuscrita: escrita, dibujada o desde una imagen.
-• Firma digitalmente con tu certificado (FNMT, representante, DNI electrónico o archivo .pfx/.p12), con sello de tiempo; las firmas anteriores siguen siendo válidas.
-• Comprueba las firmas digitales de los PDF que recibes.
-• En español, francés e inglés. Funciona en equipos Intel, AMD y ARM.
-
-Código abierto (GNU AGPL v3): https://github.com/wifredoMNK/PDFSIMPLE","PDFSIMPLE is an ad-free PDF reader for Windows, with no accounts.
-
-• Fill in PDF forms and save the data in the document itself.
-• Type anywhere on the page.
-• Add your handwritten signature: typed, drawn or from an image.
-• Sign digitally with your certificate (.pfx/.p12 file or a certificate installed in Windows), with a timestamp; earlier signatures stay valid.
-• Check the digital signatures of the PDFs you receive.
-• In Spanish, French and English. Works on Intel, AMD and ARM PCs.
-
-Open source (GNU AGPL v3): https://github.com/wifredoMNK/PDFSIMPLE","PDFSIMPLE est un lecteur PDF pour Windows, sans publicité et sans compte.
-
-• Remplissez les formulaires PDF et enregistrez les données dans le document.
-• Écrivez n'importe où sur la page.
-• Ajoutez votre signature manuscrite : tapée, dessinée ou à partir d'une image.
-• Signez numériquement avec votre certificat (fichier .pfx/.p12 ou certificat installé dans Windows), avec horodatage ; les signatures précédentes restent valides.
-• Vérifiez les signatures numériques des PDF que vous recevez.
-• En espagnol, français et anglais. Fonctionne sur les PC Intel, AMD et ARM.
-
-Code source ouvert (GNU AGPL v3) : https://github.com/wifredoMNK/PDFSIMPLE"
+Description,2,Texto,,"PDFSIMPLE es un lector de PDF para Windows sin publicidad y sin cuentas. Rellena formularios PDF y guarda los datos en el propio documento. Escribe a máquina en cualquier parte de la página. Añade tu firma manuscrita: escrita, dibujada o desde una imagen. Firma digitalmente con tu certificado (FNMT, representante, DNI electrónico o archivo .pfx/.p12), con sello de tiempo; las firmas anteriores siguen siendo válidas. Comprueba las firmas digitales de los PDF que recibes. En español, francés e inglés. Funciona en equipos Intel, AMD y ARM. Código abierto (GNU AGPL v3): https://github.com/wifredoMNK/PDFSIMPLE","PDFSIMPLE is an ad-free PDF reader for Windows, with no accounts. Fill in PDF forms and save the data in the document itself. Type anywhere on the page. Add your handwritten signature: typed, drawn or from an image. Sign digitally with your certificate (.pfx/.p12 file or a certificate installed in Windows), with a timestamp; earlier signatures stay valid. Check the digital signatures of the PDFs you receive. In Spanish, French and English. Works on Intel, AMD and ARM PCs. Open source (GNU AGPL v3): https://github.com/wifredoMNK/PDFSIMPLE","PDFSIMPLE est un lecteur PDF pour Windows, sans publicité et sans compte. Remplissez les formulaires PDF et enregistrez les données dans le document. Écrivez n'importe où sur la page. Ajoutez votre signature manuscrite : tapée, dessinée ou à partir d'une image. Signez numériquement avec votre certificat (fichier .pfx/.p12 ou certificat installé dans Windows), avec horodatage ; les signatures précédentes restent valides. Vérifiez les signatures numériques des PDF que vous recevez. En espagnol, français et anglais. Fonctionne sur les PC Intel, AMD et ARM. Code source ouvert (GNU AGPL v3) : https://github.com/wifredoMNK/PDFSIMPLE"
 ReleaseNotes,3,Texto,,Primera versión.,First release.,Première version.
 Title,4,Texto,,PDFSIMPLE,PDFSIMPLE,PDFSIMPLE
 ShortTitle,5,Texto,,,,
 SortTitle,6,Texto,,,,
 VoiceTitle,7,Texto,,,,
-ShortDescription,8,Texto,,"Lector de PDF sin publicidad: rellena formularios, escribe y firma con tu certificado digital.","Ad-free PDF reader: fill in forms, type and sign with your digital certificate.","Lecteur PDF sans publicité : remplissez des formulaires, écrivez et signez avec votre certificat numérique."
+ShortDescription,8,Texto,,,,
 DevStudio,9,Texto,,WILLY MNK,WILLY MNK,WILLY MNK
 CopyrightTrademarkInformation,12,Texto,,© 2026 WILLY MNK. pdf.js © Mozilla (Apache 2.0).,© 2026 WILLY MNK. pdf.js © Mozilla (Apache 2.0).,© 2026 WILLY MNK. pdf.js © Mozilla (Apache 2.0).
 AdditionalLicenseTerms,13,Texto,,Software libre bajo la licencia GNU AGPL v3. Código fuente: https://github.com/wifredoMNK/PDFSIMPLE,Free software under the GNU AGPL v3 license. Source code: https://github.com/wifredoMNK/PDFSIMPLE,Logiciel libre sous licence GNU AGPL v3. Code source : https://github.com/wifredoMNK/PDFSIMPLE
