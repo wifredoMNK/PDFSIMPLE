@@ -117,8 +117,10 @@
     descargar.title = "Guardar (Ctrl+S)";
     const abrirBtn = boton("lectorAbrir", "Abrir (Ctrl+O)", "Abrir", abrir);
     const firmarBtn = boton("lectorFirmar", "Firmar con certificado digital", "Firmar", firmarConCertificado);
-    descargar.before(abrirBtn);
-    descargar.after(firmarBtn);
+    // Abrir, lo primero de la barra. Firmar, justo después del grupo de Imprimir/Guardar: ese grupo
+    // (hiddenMediumView) lo esconde pdf.js cuando la ventana es estrecha, y estos dos no deben desaparecer.
+    document.getElementById("toolbarViewerLeft").prepend(abrirBtn);
+    descargar.parentElement.after(firmarBtn);
 
     // «Guardar como…» en el menú de herramientas, debajo de Abrir.
     const menuAbrir = document.getElementById("secondaryOpenFile");

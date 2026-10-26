@@ -1,8 +1,9 @@
 /* Lo que PDFbyWilly añade al aspecto de pdf.js. */
 
-#lectorAbrir::before {
-  -webkit-mask-image: url(../pdfjs/web/images/toolbarButton-openFile.svg);
-          mask-image: url(../pdfjs/web/images/toolbarButton-openFile.svg);
+#lectorAbrir::before,
+#secondaryOpenFile::before {
+  -webkit-mask-image: url(abrir.svg);
+          mask-image: url(abrir.svg);
 }
 
 #downloadButton::before,
