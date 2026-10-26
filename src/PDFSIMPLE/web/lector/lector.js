@@ -28,6 +28,7 @@
       "In Settings: type .pdf in the search box at the top, click the box that appears below, choose {0} and “Set default”."],
     mostrarIconos: ["Mostrar todos los iconos", "Afficher toutes les icônes", "Show all icons"],
     recogerIconos: ["Recoger iconos en el menú »", "Ranger les icônes dans le menu »", "Tuck icons into the » menu"],
+    panel: ["Mostrar u ocultar el panel lateral (F4)", "Afficher ou masquer le panneau latéral (F4)", "Show or hide the sidebar (F4)"],
     idioma: ["Idioma", "Langue", "Language"],
     perderCambios: [
       "Hay cambios sin guardar y se perderán al cambiar el idioma. ¿Cambiar igualmente?",
@@ -122,7 +123,7 @@
   });
 
   // Un fallo de lo nuestro no debe quedar mudo: se enseña abajo.
-  window.addEventListener("error", e => aviso(t("error") + e.message + " (" + (e.filename || "").split("/").pop() + ":" + e.lineno + ")", true));
+  window.addEventListener("error", e => /ResizeObserver loop/.test(e.message) || aviso(t("error") + e.message + " (" + (e.filename || "").split("/").pop() + ":" + e.lineno + ")", true));
   window.addEventListener("unhandledrejection", e => aviso(t("error") + (e.reason?.message || e.reason), true));
 
   function iniciar() {
@@ -160,7 +161,7 @@
 
   // ------------------------------------------------------------ la barra de iconos
   //
-  // [Abrir][Guardar][Guardar como]  ·hueco·  panel lateral, buscar, páginas      zoom      [Firmar][✓ firmas] | editores |
+  // [Abrir][Guardar][Guardar como]  ·hueco·  buscar, páginas      zoom      [Firmar][✓ firmas] | editores |
   // imprimir | …todo lo que pdf.js tenía en el menú «»», por secciones… [‹›][»]
   //
   // Lo del menú «»» pasa a la barra; la flecha ‹› lo pliega o despliega (se recuerda) y lo que no cabe al
@@ -196,6 +197,14 @@
     archivo.append(boton("lectorAbrir", t("abrir"), t("abrirCorto"), abrir), descargar,
       boton("lectorGuardarComo", t("guardarComo"), t("guardarComo"), () => guardar(true)));
     $("toolbarViewerLeft").prepend(archivo);
+
+    // El panel lateral se abre y se cierra con un triángulo en su borde, no con el botón de la barra.
+    const pestaña = document.createElement("button");
+    pestaña.id = "lectorPanel";
+    pestaña.type = "button";
+    pestaña.title = t("panel");
+    pestaña.addEventListener("click", () => $("viewsManagerToggleButton").click());
+    $("mainContainer").append(pestaña);
 
     // Firmar con certificado, junto al ✓ que dice si las firmas del documento son válidas.
     const firmarBtn = boton("lectorFirmar", t("firmarTitulo"), t("firmar"), firmarConCertificado);

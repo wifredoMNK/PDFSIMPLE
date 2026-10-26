@@ -34,6 +34,61 @@
   margin-inline-end: 28px;
 }
 
+/* El panel lateral (miniaturas, esquema…) no tiene botón en la barra: se abre y se cierra con un triángulo
+   pegado a su borde, que se mueve con él. Cerrado: en el borde izquierdo, ▶. Abierto: junto al panel, ◀. */
+#viewsManagerToggleButton {
+  display: none !important;
+}
+
+#lectorPanel {
+  position: absolute;
+  top: calc(50% + var(--toolbar-height, 32px) / 2);
+  inset-inline-start: 0;
+  transform: translateY(-50%);
+  z-index: 10;
+  width: 16px;
+  height: 56px;
+  padding: 0;
+  border: 1px solid var(--separator-color, rgb(0 0 0 / 0.2));
+  border-inline-start: none;
+  border-radius: 0 6px 6px 0;
+  background: var(--toolbar-bg-color, #f9f9fa);
+  box-shadow: 1px 0 4px rgb(0 0 0 / 0.12);
+  cursor: pointer;
+  transition-property: inset-inline-start;
+  transition-duration: var(--sidebar-transition-duration);
+  transition-timing-function: var(--sidebar-transition-timing-function);
+}
+
+#lectorPanel::before {
+  content: "";
+  display: block;
+  width: 12px;
+  height: 12px;
+  margin: auto;
+  background-color: var(--toolbar-icon-bg-color, #2b2b2b);
+  -webkit-mask: url(triangulo-abrir.svg) center / contain no-repeat;
+          mask: url(triangulo-abrir.svg) center / contain no-repeat;
+}
+
+#lectorPanel:hover {
+  background: var(--button-hover-color, #ddd);
+}
+
+#outerContainer.viewsManagerOpen #lectorPanel {
+  inset-inline-start: var(--viewsManager-width, 0);
+}
+
+#outerContainer.viewsManagerOpen #lectorPanel::before {
+  -webkit-mask-image: url(triangulo-cerrar.svg);
+          mask-image: url(triangulo-cerrar.svg);
+}
+
+#outerContainer.pdfPresentationMode #lectorPanel,
+.pdfPresentationMode ~ #lectorPanel {
+  display: none;
+}
+
 /* La línea que pdf.js pone tras el ✓ de firmas solo cuando lo hay: ponemos la nuestra, siempre. */
 #signaturePropertiesSeparator {
   display: none !important;
