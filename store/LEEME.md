@@ -75,6 +75,8 @@ Sale `dist\store\PDFSIMPLE_1.0.0.0.msixbundle` (Intel/AMD y ARM dentro; español
 
 ## Ficha de la Store (textos e imágenes)
 
+`store\ficha.ps1 -Exportado listingData-….csv` rellena el CSV exportado (respetando su formato exacto: BOM, CRLF, sin comillas
+salvo donde hace falta; si no, Partner Center lo rechaza) y deja también `store\descripciones-solo-texto.csv`.
 `store\ficha` se sube entera: Descripciones de Store → **Importar descripciones → Cargar carpeta**. Lleva
 `descripciones.csv` (el formato de «Exportar descripciones», relleno en español, francés e inglés: descripción,
 descripción breve, características, palabras clave, notas de la versión, editor y licencia), dos capturas por idioma
