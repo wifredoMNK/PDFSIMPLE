@@ -36,7 +36,7 @@ Sale `dist\store\PDFbyWilly_1.0.0.0.msixbundle` (Intel/AMD y ARM dentro). Para c
 
 **Precios y disponibilidad:** Gratis; todos los mercados (o solo España).
 
-**Propiedades:** categoría *Productividad*. Política de privacidad: la URL donde publiques el texto de abajo.
+**Propiedades:** categoría *Productividad*. Política de privacidad: **https://menork.es/politica-de-privacidad/**
 
 **Clasificación por edades:** cuestionario; la app no tiene contenido para adultos ni comunicación entre usuarios.
 
@@ -64,12 +64,10 @@ Sale `dist\store\PDFbyWilly_1.0.0.0.msixbundle` (Intel/AMD y ARM dentro). Para c
 
 **Enviar para certificación.** Microsoft la revisa (normalmente de 1 a 3 días) y, si la aprueba, se publica.
 
-## Texto de la política de privacidad
+## Política de privacidad
 
-> **PDFbyWilly — Política de privacidad.** PDFbyWilly no recoge, guarda ni envía datos personales. Los documentos
-> se abren y se guardan solo en tu equipo. Cuando firmas con sello de tiempo, se envía a un servidor de sellado
-> (DigiCert) únicamente la huella criptográfica de la firma, no el documento ni tus datos. Los ajustes y las
-> firmas manuscritas que guardes quedan en tu equipo. Contacto: hola@menork.es.
+Publicada en <https://menork.es/politica-de-privacidad/>. El archivo está en el proyecto de la web:
+`Documentos\proyectos\Menork\public\politica-de-privacidad\index.html` (se sube con el resto de menork.es).
 
 ## Licencia
 
