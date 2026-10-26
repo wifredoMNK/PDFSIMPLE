@@ -35,6 +35,7 @@ certificado de código, así que Windows puede avisar la primera vez («Más inf
 
 En `dist` quedan también las versiones sueltas, `PDFbyWilly.exe` (Intel/AMD) y `PDFbyWilly-ARM64.exe`, que se
 pueden usar sin instalar.
+
 Atajos: Ctrl+O abrir, Ctrl+S guardar, Ctrl+Mayús+S guardar como, Ctrl+F buscar, Ctrl+P imprimir. Arrastrar un PDF
 a la ventana lo abre (en otra ventana si ya hay uno).
 
