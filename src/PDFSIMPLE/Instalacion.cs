@@ -3,11 +3,11 @@ using System.Runtime.InteropServices;
 using System.Security.Principal;
 using Microsoft.Win32;
 
-namespace PDFbyWilly;
+namespace PDFSIMPLE;
 
 /// <summary>
 /// Alta y baja en Windows, para todo el equipo (como se registran los lectores que Windows enseña en
-/// su lista de «abrir los PDF con…»). Lo instala PDFbyWilly-Setup.exe, que copia el .exe a Archivos de
+/// su lista de «abrir los PDF con…»). Lo instala PDFSIMPLE-Setup.exe, que copia el .exe a Archivos de
 /// programa y lo llama con «--registrar»; se quita desde Configuración → Aplicaciones, que lo llama con
 /// «--desinstalar». Las dos cosas necesitan administrador.
 /// Windows no deja que un programa se ponga solo como predeterminado: se abre la página donde se elige.
@@ -16,7 +16,7 @@ static class Instalacion
 {
     public static readonly string Nombre = Marca.Nombre;
     static readonly string ProgId = Nombre + ".Documento";
-    const string Descripcion = "Lector de PDF sin publicidad: formularios, texto y firma digital";
+    static string Descripcion => Idioma.T("descripcion");
     static readonly string ClaveDesinstalar = @"Software\Microsoft\Windows\CurrentVersion\Uninstall\" + Nombre;
 
     static string Exe => Environment.ProcessPath!;
@@ -38,7 +38,7 @@ static class Instalacion
 
         using (var k = hklm.CreateSubKey($@"Software\Classes\{ProgId}"))
         {
-            k.SetValue("", "Documento PDF");
+            k.SetValue("", Idioma.T("documentoPdf"));
             k.CreateSubKey("DefaultIcon").SetValue("", icono);
             k.CreateSubKey(@"shell\open\command").SetValue("", orden);
             using var app = k.CreateSubKey("Application");
@@ -93,7 +93,7 @@ static class Instalacion
             catch { }
             return;
         }
-        if (MessageBox.Show($"¿Desinstalar {Nombre}?", Nombre, MessageBoxButtons.YesNo, MessageBoxIcon.Question) != DialogResult.Yes)
+        if (MessageBox.Show(Idioma.T("desinstalar", Nombre), Nombre, MessageBoxButtons.YesNo, MessageBoxIcon.Question) != DialogResult.Yes)
             return;
 
         foreach (var p in Process.GetProcessesByName(Nombre))
@@ -117,7 +117,7 @@ static class Instalacion
         // Los ajustes y las firmas manuscritas guardadas se quedan, por si se vuelve a instalar.
         Process.Start(new ProcessStartInfo("cmd.exe", $"/c timeout /t 2 /nobreak >nul & rmdir /s /q \"{Carpeta}\"")
         { CreateNoWindow = true, UseShellExecute = false });
-        MessageBox.Show($"{Nombre} se ha desinstalado.", Nombre, MessageBoxButtons.OK, MessageBoxIcon.Information);
+        MessageBox.Show(Idioma.T("desinstalado", Nombre), Nombre, MessageBoxButtons.OK, MessageBoxIcon.Information);
     }
 
     /// <summary>Quita la instalación antigua solo para el usuario (versiones anteriores al instalador).</summary>
@@ -151,8 +151,7 @@ static class Instalacion
         catch { Process.Start(new ProcessStartInfo("ms-settings:defaultapps") { UseShellExecute = true }); }
     }
 
-    public static readonly string ComoPredeterminado =
-        $"En Configuración: escribe .pdf en el buscador de arriba, pulsa la casilla que sale debajo, elige {Nombre} y «Establecer predeterminado».";
+    public static string ComoPredeterminado => Idioma.T("comoPredeterminado", Nombre);
 
     static bool EsAdministrador() => new WindowsPrincipal(WindowsIdentity.GetCurrent()).IsInRole(WindowsBuiltInRole.Administrator);
 
@@ -169,7 +168,7 @@ static class Instalacion
         lnk.TargetPath = Exe;
         lnk.WorkingDirectory = Carpeta;
         lnk.IconLocation = Exe + ",0";
-        lnk.Description = "Lector de PDF: formularios, texto y firma digital";
+        lnk.Description = Descripcion;
         lnk.Save();
         Marshal.FinalReleaseComObject(lnk);
         Marshal.FinalReleaseComObject(shell);

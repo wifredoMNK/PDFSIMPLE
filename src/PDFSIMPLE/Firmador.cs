@@ -10,7 +10,7 @@ using iText.Signatures;
 using Org.BouncyCastle.X509;
 using Rectangle = iText.Kernel.Geom.Rectangle;
 
-namespace PDFbyWilly;
+namespace PDFSIMPLE;
 
 /// <summary>
 /// Firma PAdES (CAdES desprendida, SHA-256) aÃ±adida al final del PDF, sin reescribirlo: las firmas
@@ -34,7 +34,7 @@ static class Firmador
         catch (Exception ex) when (EsDelSellado(ex))
         {
             return new(Una(pdf, firma, cadena, campo, pagina, rect, null),
-                "Firmado sin sello de tiempo: no se ha podido contactar con el servidor de sellado.");
+                Idioma.T("sinSello"));
         }
     }
 
@@ -53,7 +53,7 @@ static class Firmador
         if (rect is [var x1, var y1, var x2, var y2])
         {
             var apariencia = new SignatureFieldAppearance(SignerProperties.IGNORED_ID)
-                .SetContent($"Firmado digitalmente por:\n{nombre}\nFecha: {DateTime.Now:dd/MM/yyyy HH:mm:ss}");
+                .SetContent($"{Idioma.T("firmadoPor")}\n{nombre}\n{Idioma.T("fecha")}: {DateTime.Now.ToString(Idioma.T("formatoFecha"))}");
             props.SetPageNumber(pagina)
                  .SetPageRect(new Rectangle(Math.Min(x1, x2), Math.Min(y1, y2), Math.Abs(x2 - x1), Math.Abs(y2 - y1)))
                  .SetSignatureAppearance(apariencia);
@@ -119,7 +119,7 @@ static class Firmador
         {
             if (rsa is not null) return rsa.SignData(mensaje, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
             if (ec is not null) return ec.SignData(mensaje, HashAlgorithmName.SHA256, DSASignatureFormat.Rfc3279DerSequence);
-            throw new CryptographicException("El certificado no tiene una clave RSA ni ECDSA utilizable.");
+            throw new CryptographicException(Idioma.T("claveNoValida"));
         }
     }
 }

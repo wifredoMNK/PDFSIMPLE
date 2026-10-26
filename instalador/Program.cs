@@ -8,7 +8,7 @@ using System.Runtime.InteropServices;
 using System.Windows.Forms;
 using Microsoft.Win32;
 
-namespace PDFbyWillySetup
+namespace PDFSIMPLESetup
 {
     static class Program
     {
@@ -21,7 +21,7 @@ namespace PDFbyWillySetup
             var arq = Arquitectura.DeEsteEquipo();
             if (arq == null)
             {
-                MessageBox.Show("PDFbyWilly necesita Windows de 64 bits.", "Instalar PDFbyWilly", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("PDFSIMPLE necesita Windows de 64 bits.", "Instalar PDFSIMPLE", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return 1;
             }
             Application.Run(new VentanaSetup(arq.Value));
@@ -55,14 +55,14 @@ namespace PDFbyWillySetup
 
     /// <summary>
     /// Una ventana con dos pasos: qué se instala (y opciones) y, al acabar, la propuesta de dejarlo
-    /// para los PDF. El registro en Windows lo hace el propio PDFbyWilly.exe con «--registrar».
+    /// para los PDF. El registro en Windows lo hace el propio PDFSIMPLE.exe con «--registrar».
     /// </summary>
     sealed class VentanaSetup : Form
     {
-        const string Nombre = "PDFbyWilly";
+        const string Nombre = "PDFSIMPLE";
         const string ComoPredeterminado =
             "En la ventana de Configuración que se ha abierto: escribe .pdf en el buscador de arriba, pulsa la casilla " +
-            "que sale debajo, elige PDFbyWilly y pulsa «Establecer predeterminado».";
+            "que sale debajo, elige PDFSIMPLE y pulsa «Establecer predeterminado».";
 
         readonly Arq arq;
         readonly string carpeta = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), Nombre);
@@ -80,7 +80,7 @@ namespace PDFbyWillySetup
             this.arq = arq;
             bool actualizar = File.Exists(Exe);
 
-            Text = actualizar ? "Actualizar PDFbyWilly" : "Instalar PDFbyWilly";
+            Text = actualizar ? "Actualizar PDFSIMPLE" : "Instalar PDFSIMPLE";
             Icon = new Icon(Assembly.GetExecutingAssembly().GetManifestResourceStream("icono.ico"));
             StartPosition = FormStartPosition.CenterScreen;
             FormBorderStyle = FormBorderStyle.FixedDialog;
@@ -142,7 +142,7 @@ namespace PDFbyWillySetup
             var abiertos = Process.GetProcessesByName(Nombre);
             if (abiertos.Length > 0)
             {
-                if (MessageBox.Show(this, "Hay ventanas de PDFbyWilly abiertas: se van a cerrar y se perderá lo que no esté guardado.",
+                if (MessageBox.Show(this, "Hay ventanas de PDFSIMPLE abiertas: se van a cerrar y se perderá lo que no esté guardado.",
                         Text, MessageBoxButtons.OKCancel, MessageBoxIcon.Warning) != DialogResult.OK)
                     return;
                 foreach (var p in abiertos) try { p.Kill(); p.WaitForExit(5000); } catch { }
@@ -183,8 +183,8 @@ namespace PDFbyWillySetup
 
         void MostrarFinal()
         {
-            var hecho = new Label { Text = "✔  PDFbyWilly está instalado", AutoSize = true, Font = new Font(Font.FontFamily, Font.Size * 1.4f, FontStyle.Bold), ForeColor = Color.FromArgb(31, 111, 63) };
-            var pregunta = Texto("¿Quieres que los PDF se abran siempre con PDFbyWilly?");
+            var hecho = new Label { Text = "✔  PDFSIMPLE está instalado", AutoSize = true, Font = new Font(Font.FontFamily, Font.Size * 1.4f, FontStyle.Bold), ForeColor = Color.FromArgb(31, 111, 63) };
+            var pregunta = Texto("¿Quieres que los PDF se abran siempre con PDFSIMPLE?");
             pregunta.Font = new Font(Font, FontStyle.Bold);
             pregunta.Margin = new Padding(0, E(14), 0, E(4));
             var instrucciones = Texto("");
@@ -203,7 +203,7 @@ namespace PDFbyWillySetup
             };
             no.Click += (s, e) =>
             {
-                instrucciones.Text = "Cuando quieras: en PDFbyWilly, menú » → «Abrir siempre los PDF con PDFbyWilly…».";
+                instrucciones.Text = "Cuando quieras: en PDFSIMPLE, menú » → «Abrir siempre los PDF con PDFSIMPLE…».";
                 instrucciones.Visible = true;
                 filaPregunta.Visible = false;
             };
@@ -212,7 +212,7 @@ namespace PDFbyWillySetup
             paso2.Controls.AddRange(new Control[] { hecho, pregunta, filaPregunta, instrucciones });
             if (anclar.Checked)
             {
-                var a = Texto("Para anclarlo a la barra de tareas: clic derecho en el icono de PDFbyWilly de la barra de abajo " +
+                var a = Texto("Para anclarlo a la barra de tareas: clic derecho en el icono de PDFSIMPLE de la barra de abajo " +
                               "(se acaba de abrir) → «Anclar a la barra de tareas».");
                 a.Margin = new Padding(0, E(12), 0, E(2));
                 paso2.Controls.Add(a);
@@ -223,7 +223,7 @@ namespace PDFbyWillySetup
 
             paso1.Visible = false;
             paso2.Visible = true;
-            Text = "PDFbyWilly instalado";
+            Text = "PDFSIMPLE instalado";
             Activate();
         }
 

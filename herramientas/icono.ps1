@@ -1,7 +1,6 @@
 ﻿# Dibuja el icono: cuadrado rojo, «PDF» en blanco y debajo otra palabra más fina, del mismo ancho.
 # Uso:
-#   .\herramientas\icono.ps1 -Nombre PDFbyWilly -Debajo 'BY WILLY'                       → src\PDFbyWilly\iconos\PDFbyWilly.ico
-#   .\herramientas\icono.ps1 -Nombre PDFSIMPLE  -Debajo 'SIMPLE' -Store store\Assets     → además, los PNG de la Microsoft Store
+#   .\herramientas\icono.ps1 -Nombre PDFSIMPLE -Debajo 'SIMPLE' -Store store\Assets  → src\PDFSIMPLE\iconos\PDFSIMPLE.ico y los PNG de la Store
 param(
   [Parameter(Mandatory)] [string]$Nombre,
   [Parameter(Mandatory)] [string]$Debajo,
@@ -46,7 +45,7 @@ $out = New-Object System.IO.MemoryStream; $bw = New-Object System.IO.BinaryWrite
 $bw.Write([uint16]0); $bw.Write([uint16]1); $bw.Write([uint16]$sizes.Count); $off = 6 + 16 * $sizes.Count
 for ($i = 0; $i -lt $sizes.Count; $i++) { $s = $sizes[$i]; $b = if ($s -ge 256) { 0 } else { $s }; $bw.Write([byte]$b); $bw.Write([byte]$b); $bw.Write([byte]0); $bw.Write([byte]0); $bw.Write([uint16]1); $bw.Write([uint16]32); $bw.Write([uint32]$pngs[$i].Length); $bw.Write([uint32]$off); $off += $pngs[$i].Length }
 foreach ($d in $pngs) { $bw.Write($d) }
-[IO.File]::WriteAllBytes((Join-Path $raiz "src\PDFbyWilly\iconos\$Nombre.ico"), $out.ToArray())
+[IO.File]::WriteAllBytes((Join-Path $raiz "src\PDFSIMPLE\iconos\$Nombre.ico"), $out.ToArray())
 
 if ($Store) {
   $assets = if ([IO.Path]::IsPathRooted($Store)) { $Store } else { Join-Path $raiz $Store }

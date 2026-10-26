@@ -10,7 +10,7 @@ using iText.Kernel.Font;
 using iText.Kernel.Pdf;
 using iText.Kernel.Pdf.Canvas;
 using iText.Signatures;
-using PDFbyWilly;
+using PDFSIMPLE;
 using Rectangle = iText.Kernel.Geom.Rectangle;
 
 // «dotnet run -- comprobar archivo.pdf»: firmas y anotaciones de un PDF cualquiera.
@@ -63,7 +63,7 @@ Console.WriteLine("Formulario: " + formulario);
 
 // 2. Certificado de prueba (autofirmado, no lo reconoce nadie: debe salir «no de confianza»)
 using var rsa = RSA.Create(2048);
-var req = new CertificateRequest("CN=PRUEBA PDFBYWILLY - 00000000T, O=Pruebas, C=ES", rsa, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
+var req = new CertificateRequest("CN=PRUEBA PDFSIMPLE - 00000000T, O=Pruebas, C=ES", rsa, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
 req.CertificateExtensions.Add(new X509KeyUsageExtension(X509KeyUsageFlags.DigitalSignature | X509KeyUsageFlags.NonRepudiation, true));
 using var autofirmado = req.CreateSelfSigned(DateTimeOffset.Now.AddDays(-1), DateTimeOffset.Now.AddYears(2));
 string pfx = Path.Combine(salida, "prueba.pfx");

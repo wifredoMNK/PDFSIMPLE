@@ -1,7 +1,7 @@
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 
-namespace PDFbyWilly;
+namespace PDFSIMPLE;
 
 /// <summary>
 /// Elige el certificado con que firmar: los personales instalados en Windows (donde van el de la
@@ -25,7 +25,7 @@ sealed class DialogoCertificado : Form
 
     DialogoCertificado()
     {
-        Text = "Firmar con certificado";
+        Text = Idioma.T("firmarConCertificado");
         StartPosition = FormStartPosition.CenterParent;
         Size = LogicalToDeviceUnits(new Size(720, 380));
         MinimumSize = LogicalToDeviceUnits(new Size(520, 260));
@@ -33,26 +33,26 @@ sealed class DialogoCertificado : Form
         ShowInTaskbar = false;
         Font = SystemFonts.MessageBoxFont;
 
-        lista.Columns.Add("Titular", LogicalToDeviceUnits(330));
-        lista.Columns.Add("Emitido por", LogicalToDeviceUnits(220));
-        lista.Columns.Add("Caduca", LogicalToDeviceUnits(100));
+        lista.Columns.Add(Idioma.T("titular"), LogicalToDeviceUnits(330));
+        lista.Columns.Add(Idioma.T("emitidoPor"), LogicalToDeviceUnits(220));
+        lista.Columns.Add(Idioma.T("caduca"), LogicalToDeviceUnits(100));
 
         certificados = Personales();
         foreach (var c in certificados)
         {
             var it = new ListViewItem(c.GetNameInfo(X509NameType.SimpleName, false));
             it.SubItems.Add(c.GetNameInfo(X509NameType.SimpleName, true));
-            it.SubItems.Add(c.NotAfter.ToString("dd/MM/yyyy"));
+            it.SubItems.Add(c.NotAfter.ToString(Idioma.Actual == "en" ? "yyyy-MM-dd" : "dd/MM/yyyy"));
             it.Tag = c;
             lista.Items.Add(it);
             if (c.Thumbprint == Ajustes.Actual.Certificado) it.Selected = true;
         }
         if (lista.SelectedItems.Count == 0 && lista.Items.Count > 0) lista.Items[0].Selected = true;
 
-        var firmar = new Button { Text = "Firmar", AutoSize = true, DialogResult = DialogResult.None };
-        var cancelar = new Button { Text = "Cancelar", AutoSize = true, DialogResult = DialogResult.Cancel };
-        var ver = new Button { Text = "Ver certificado", AutoSize = true };
-        var archivo = new Button { Text = "Usar archivo .pfx / .p12…", AutoSize = true };
+        var firmar = new Button { Text = Idioma.T("firmar"), AutoSize = true, DialogResult = DialogResult.None };
+        var cancelar = new Button { Text = Idioma.T("cancelar"), AutoSize = true, DialogResult = DialogResult.Cancel };
+        var ver = new Button { Text = Idioma.T("verCertificado"), AutoSize = true };
+        var archivo = new Button { Text = Idioma.T("usarArchivo"), AutoSize = true };
 
         firmar.Click += (_, _) => Aceptar();
         lista.DoubleClick += (_, _) => Aceptar();
@@ -66,8 +66,8 @@ sealed class DialogoCertificado : Form
         {
             Dock = DockStyle.Top, AutoSize = false, Height = LogicalToDeviceUnits(34), Padding = new Padding(2, 4, 2, 0),
             Text = certificados.Count == 0
-                ? "No hay certificados personales instalados en Windows. Puedes usar un archivo .pfx / .p12."
-                : "Certificados personales instalados en Windows:",
+                ? Idioma.T("sinCertificados")
+                : Idioma.T("conCertificados"),
         };
         var botones = new FlowLayoutPanel { Dock = DockStyle.Bottom, FlowDirection = FlowDirection.RightToLeft, AutoSize = true, Padding = new Padding(4) };
         botones.Controls.AddRange([cancelar, firmar, archivo, ver]);
@@ -92,7 +92,7 @@ sealed class DialogoCertificado : Form
 
     void DesdeArchivo()
     {
-        using var dlg = new OpenFileDialog { Filter = "Certificado con clave (*.pfx;*.p12)|*.pfx;*.p12" };
+        using var dlg = new OpenFileDialog { Filter = Idioma.T("filtroCertificado") };
         if (dlg.ShowDialog(this) != DialogResult.OK) return;
         while (true)
         {
@@ -102,13 +102,13 @@ sealed class DialogoCertificado : Form
             {
                 var todos = X509CertificateLoader.LoadPkcs12CollectionFromFile(dlg.FileName, clave, X509KeyStorageFlags.EphemeralKeySet);
                 elegido = todos.FirstOrDefault(c => c.HasPrivateKey)
-                          ?? throw new CryptographicException("El archivo no lleva la clave privada.");
+                          ?? throw new CryptographicException(Idioma.T("sinClavePrivada"));
                 DialogResult = DialogResult.OK;
                 return;
             }
             catch (CryptographicException ex)
             {
-                MessageBox.Show(this, "No se ha podido abrir el certificado: " + ex.Message, Text, MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show(this, Idioma.T("certificadoNoAbre", ex.Message), Text, MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
         }
     }
@@ -118,14 +118,14 @@ sealed class DialogoCertificado : Form
         int E(int v) => LogicalToDeviceUnits(v);
         using var f = new Form
         {
-            Text = "Contraseña del certificado", StartPosition = FormStartPosition.CenterParent,
+            Text = Idioma.T("contrasenaCertificado"), StartPosition = FormStartPosition.CenterParent,
             FormBorderStyle = FormBorderStyle.FixedDialog, MinimizeBox = false, MaximizeBox = false,
             ShowInTaskbar = false, ClientSize = new Size(E(380), E(120)), Font = Font,
         };
         var et = new Label { Text = nombre, Location = new Point(E(12), E(12)), AutoSize = true };
         var caja = new TextBox { UseSystemPasswordChar = true, Location = new Point(E(12), E(38)), Width = E(356) };
-        var ok = new Button { Text = "Aceptar", DialogResult = DialogResult.OK, Location = new Point(E(196), E(80)), AutoSize = true };
-        var no = new Button { Text = "Cancelar", DialogResult = DialogResult.Cancel, Location = new Point(E(286), E(80)), AutoSize = true };
+        var ok = new Button { Text = Idioma.T("aceptar"), DialogResult = DialogResult.OK, Location = new Point(E(196), E(80)), AutoSize = true };
+        var no = new Button { Text = Idioma.T("cancelar"), DialogResult = DialogResult.Cancel, Location = new Point(E(286), E(80)), AutoSize = true };
         f.Controls.AddRange([et, caja, ok, no]);
         f.AcceptButton = ok; f.CancelButton = no;
         return f.ShowDialog(this) == DialogResult.OK ? caja.Text : null;

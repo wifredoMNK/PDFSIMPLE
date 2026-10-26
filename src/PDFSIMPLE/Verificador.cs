@@ -3,7 +3,7 @@ using System.Security.Cryptography;
 using System.Security.Cryptography.Pkcs;
 using System.Security.Cryptography.X509Certificates;
 
-namespace PDFbyWilly;
+namespace PDFSIMPLE;
 
 /// <summary>
 /// Comprueba una firma de un PDF para el panel de firmas de pdf.js: que el contenido firmado no ha
@@ -27,9 +27,9 @@ static class Verificador
             {
                 // Sello de tiempo del documento entero (sin firmante persona).
                 if (!Rfc3161TimestampToken.TryDecode(der, out var tok, out _))
-                    return Invalida("El sello de tiempo no se puede leer.", null);
+                    return Invalida(Idioma.T("selloIlegible"), null);
                 if (!tok!.VerifySignatureForData(contenido, out var tsa))
-                    return Invalida("El documento ha cambiado después del sello de tiempo.", tsa);
+                    return Invalida(Idioma.T("cambiadoTrasSello"), tsa);
                 cert = tsa!;
                 fecha = tok.TokenInfo.Timestamp.LocalDateTime;
                 sellada = true;
@@ -48,12 +48,12 @@ static class Verificador
                     cms.Decode(der);
                 }
                 var si = cms.SignerInfos[0];
-                cert = si.Certificate ?? throw new CryptographicException("La firma no trae el certificado del firmante.");
+                cert = si.Certificate ?? throw new CryptographicException(Idioma.T("sinCertificadoFirmante"));
                 try { si.CheckSignature(verifySignatureOnly: true); }
-                catch (CryptographicException) { return Invalida("El documento ha cambiado después de firmarlo.", cert); }
+                catch (CryptographicException) { return Invalida(Idioma.T("cambiadoTrasFirma"), cert); }
 
                 if (subFilter == "adbe.pkcs7.sha1" && !SHA1.HashData(contenido).AsSpan().SequenceEqual(cms.ContentInfo.Content))
-                    return Invalida("El documento ha cambiado después de firmarlo.", cert);
+                    return Invalida(Idioma.T("cambiadoTrasFirma"), cert);
 
                 foreach (var attr in si.UnsignedAttributes)
                     if (attr.Oid.Value == OidSelloEnFirma && attr.Values.Count > 0 &&
@@ -92,7 +92,7 @@ static class Verificador
         var datos = Datos(cert, ch);
 
         if (fallos.HasFlag(X509ChainStatusFlags.Revoked))
-            return new { status = "revoked", errorCode = "REVOKED", message = "El certificado del firmante está revocado.", certificate = datos };
+            return new { status = "revoked", errorCode = "REVOKED", message = Idioma.T("revocado"), certificate = datos };
 
         if ((fallos & (X509ChainStatusFlags.UntrustedRoot | X509ChainStatusFlags.PartialChain)) != 0)
         {
@@ -105,7 +105,7 @@ static class Verificador
             return new
             {
                 status = "expired", errorCode = "EXPIRED",
-                message = $"El certificado no estaba en vigor el {fecha ?? DateTime.Now:dd/MM/yyyy HH:mm}" + (sellada ? " (según el sello de tiempo)." : "."),
+                message = Idioma.T("noEnVigor", (fecha ?? DateTime.Now).ToString(Idioma.T("formatoFecha"))) + (sellada ? Idioma.T("segunSello") : "."),
                 certificate = datos,
             };
 

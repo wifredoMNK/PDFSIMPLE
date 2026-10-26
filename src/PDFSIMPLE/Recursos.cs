@@ -1,6 +1,6 @@
 using System.Reflection;
 
-namespace PDFbyWilly;
+namespace PDFSIMPLE;
 
 /// <summary>
 /// Los archivos de la carpeta web (pdf.js y lo nuestro) y el icono van incrustados en el .exe, para

@@ -1,6 +1,6 @@
 using System.Text.Json;
 
-namespace PDFbyWilly;
+namespace PDFSIMPLE;
 
 /// <summary>Lo que se recuerda entre sesiones, en %LOCALAPPDATA%\<marca>\ajustes.json.</summary>
 sealed class Ajustes
@@ -9,6 +9,7 @@ sealed class Ajustes
     public bool Maximizada { get; set; }
     public string? Carpeta { get; set; }         // la del último documento abierto
     public string? Certificado { get; set; }     // huella del último certificado con que se firmó
+    public string? Idioma { get; set; }          // es / fr / en; sin elegir, el de Windows
 
     static readonly string Archivo = Path.Combine(CarpetaDatos(), "ajustes.json");
     static Ajustes? actual;
@@ -38,6 +39,7 @@ sealed class Ajustes
             if (Ventana is not null) { disco.Ventana = Ventana; disco.Maximizada = Maximizada; }
             disco.Carpeta = Carpeta ?? disco.Carpeta;
             disco.Certificado = Certificado ?? disco.Certificado;
+            disco.Idioma = Idioma ?? disco.Idioma;
             File.WriteAllText(Archivo, JsonSerializer.Serialize(disco));
         }
         catch { }

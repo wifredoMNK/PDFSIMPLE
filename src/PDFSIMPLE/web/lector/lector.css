@@ -1,0 +1,182 @@
+/* Lo que PDFSIMPLE añade al aspecto de pdf.js. */
+
+#lectorAbrir::before,
+#secondaryOpenFile::before {
+  -webkit-mask-image: url(abrir.svg);
+          mask-image: url(abrir.svg);
+}
+
+#downloadButton::before,
+#secondaryDownload::before {
+  -webkit-mask-image: url(guardar.svg);
+          mask-image: url(guardar.svg);
+}
+
+#lectorFirmar::before {
+  -webkit-mask-image: url(firmar.svg);
+          mask-image: url(firmar.svg);
+}
+
+#lectorGuardarComo::before {
+  -webkit-mask-image: url(guardar-como.svg);
+          mask-image: url(guardar-como.svg);
+}
+
+#lectorPredeterminado::before {
+  -webkit-mask-image: url(predeterminado.svg);
+          mask-image: url(predeterminado.svg);
+}
+
+/* ---------------------------------------------------------------- barra de iconos */
+
+/* Abrir, Guardar y Guardar como, separados de lo demás por el hueco de un icono. */
+#lectorArchivo {
+  margin-inline-end: 28px;
+}
+
+/* La línea que pdf.js pone tras el ✓ de firmas solo cuando lo hay: ponemos la nuestra, siempre. */
+#signaturePropertiesSeparator {
+  display: none !important;
+}
+
+#secondaryToolbarToggle[hidden] {
+  display: none !important;
+}
+
+#lectorPlegar::before {
+  -webkit-mask-image: url(plegar.svg);
+          mask-image: url(plegar.svg);
+}
+
+#lectorPlegar.plegada::before {
+  -webkit-mask-image: url(desplegar.svg);
+          mask-image: url(desplegar.svg);
+}
+
+/* Idiomas: el símbolo de siempre (文A) y su menú, sin icono en cada opción; la elegida, marcada. */
+#lectorIdiomaBoton::before {
+  -webkit-mask-image: url(idioma.svg);
+          mask-image: url(idioma.svg);
+}
+
+#lectorIdiomaMenu {
+  width: 160px;
+}
+
+#lectorIdiomaMenu .toolbarButton::before {
+  display: none;
+}
+
+/* En el menú «»», cada sección en columna, con el texto de cada botón. */
+.lectorSeccion:not(.toolbarHorizontalGroup),
+.lectorSeccion:not(.toolbarHorizontalGroup) [role="radiogroup"] {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Los iconos de lo que pdf.js tenía en el menú: allí van con su selector, aquí valen en la barra también. */
+#presentationMode::before { -webkit-mask-image: url(../pdfjs/web/images/toolbarButton-presentationMode.svg); mask-image: url(../pdfjs/web/images/toolbarButton-presentationMode.svg); }
+#firstPage::before { -webkit-mask-image: url(../pdfjs/web/images/secondaryToolbarButton-firstPage.svg); mask-image: url(../pdfjs/web/images/secondaryToolbarButton-firstPage.svg); }
+#lastPage::before { -webkit-mask-image: url(../pdfjs/web/images/secondaryToolbarButton-lastPage.svg); mask-image: url(../pdfjs/web/images/secondaryToolbarButton-lastPage.svg); }
+#pageRotateCcw::before { -webkit-mask-image: url(../pdfjs/web/images/secondaryToolbarButton-rotateCcw.svg); mask-image: url(../pdfjs/web/images/secondaryToolbarButton-rotateCcw.svg); }
+#pageRotateCw::before { -webkit-mask-image: url(../pdfjs/web/images/secondaryToolbarButton-rotateCw.svg); mask-image: url(../pdfjs/web/images/secondaryToolbarButton-rotateCw.svg); }
+#cursorSelectTool::before { -webkit-mask-image: url(../pdfjs/web/images/secondaryToolbarButton-selectTool.svg); mask-image: url(../pdfjs/web/images/secondaryToolbarButton-selectTool.svg); }
+#cursorHandTool::before { -webkit-mask-image: url(../pdfjs/web/images/secondaryToolbarButton-handTool.svg); mask-image: url(../pdfjs/web/images/secondaryToolbarButton-handTool.svg); }
+#scrollPage::before { -webkit-mask-image: url(../pdfjs/web/images/secondaryToolbarButton-scrollPage.svg); mask-image: url(../pdfjs/web/images/secondaryToolbarButton-scrollPage.svg); }
+#scrollVertical::before { -webkit-mask-image: url(../pdfjs/web/images/secondaryToolbarButton-scrollVertical.svg); mask-image: url(../pdfjs/web/images/secondaryToolbarButton-scrollVertical.svg); }
+#scrollHorizontal::before { -webkit-mask-image: url(../pdfjs/web/images/secondaryToolbarButton-scrollHorizontal.svg); mask-image: url(../pdfjs/web/images/secondaryToolbarButton-scrollHorizontal.svg); }
+#scrollWrapped::before { -webkit-mask-image: url(../pdfjs/web/images/secondaryToolbarButton-scrollWrapped.svg); mask-image: url(../pdfjs/web/images/secondaryToolbarButton-scrollWrapped.svg); }
+#spreadNone::before { -webkit-mask-image: url(../pdfjs/web/images/secondaryToolbarButton-spreadNone.svg); mask-image: url(../pdfjs/web/images/secondaryToolbarButton-spreadNone.svg); }
+#spreadOdd::before { -webkit-mask-image: url(../pdfjs/web/images/secondaryToolbarButton-spreadOdd.svg); mask-image: url(../pdfjs/web/images/secondaryToolbarButton-spreadOdd.svg); }
+#spreadEven::before { -webkit-mask-image: url(../pdfjs/web/images/secondaryToolbarButton-spreadEven.svg); mask-image: url(../pdfjs/web/images/secondaryToolbarButton-spreadEven.svg); }
+#documentProperties::before { -webkit-mask-image: url(../pdfjs/web/images/secondaryToolbarButton-documentProperties.svg); mask-image: url(../pdfjs/web/images/secondaryToolbarButton-documentProperties.svg); }
+
+/* Lo que no tiene sentido fuera de una web: el enlace a la vista actual. */
+#viewBookmark,
+#viewBookmarkSeparator {
+  display: none !important;
+}
+
+/* ---------------------------------------------------------------- colocar la firma */
+
+#lectorBarraFirma {
+  position: fixed;
+  top: calc(var(--toolbar-height, 32px) + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 100000;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  padding: 6px 8px 6px 14px;
+  background: #1f6f3f;
+  color: #fff;
+  font: 13px/1.3 system-ui, "Segoe UI", sans-serif;
+  border-radius: 6px;
+  box-shadow: 0 2px 10px rgb(0 0 0 / 0.25);
+  max-width: calc(100vw - 32px);
+}
+
+#lectorBarraFirma button {
+  font: inherit;
+  padding: 4px 10px;
+  border: 1px solid rgb(255 255 255 / 0.6);
+  border-radius: 4px;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+#lectorBarraFirma button:hover {
+  background: rgb(255 255 255 / 0.15);
+}
+
+body.lector-colocando #viewerContainer .page,
+body.lector-colocando #viewerContainer .page * {
+  cursor: crosshair !important;
+}
+
+.lectorMarcoFirma {
+  position: absolute;
+  z-index: 1000;
+  border: 2px dashed #1f6f3f;
+  background: rgb(31 111 63 / 0.12);
+  pointer-events: none;
+}
+
+body.lector-esperando,
+body.lector-esperando * {
+  cursor: progress !important;
+}
+
+/* ---------------------------------------------------------------- avisos */
+
+#lectorAviso {
+  position: fixed;
+  left: 50%;
+  bottom: 24px;
+  transform: translate(-50%, 20px);
+  z-index: 100001;
+  max-width: min(640px, calc(100vw - 32px));
+  padding: 9px 16px;
+  border-radius: 6px;
+  background: #2b2b2b;
+  color: #fff;
+  font: 13px/1.35 system-ui, "Segoe UI", sans-serif;
+  box-shadow: 0 2px 12px rgb(0 0 0 / 0.3);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s, transform 0.2s;
+}
+
+#lectorAviso.visible {
+  opacity: 1;
+  transform: translate(-50%, 0);
+  pointer-events: auto;
+  cursor: pointer;
+}
+
+#lectorAviso.error {
+  background: #a3262a;
+}

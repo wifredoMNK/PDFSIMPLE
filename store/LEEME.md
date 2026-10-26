@@ -1,9 +1,5 @@
 # Publicar en la Microsoft Store como PDFSIMPLE
 
-En la Store el programa se llama **PDFSIMPLE** (icono «PDF / SIMPLE»). Es el mismo código que PDFbyWilly,
-compilado con `-p:Marca=PDFSIMPLE`: cambian el nombre del .exe, el título, el icono y la carpeta de ajustes.
-PDFbyWilly y su instalador siguen igual.
-
 La Store firma el programa: quien lo instale no ve el aviso de «editor desconocido», y Windows lo ofrece
 directamente para abrir los PDF. La cuenta de desarrollador es gratis para particulares.
 
@@ -15,10 +11,10 @@ directamente para abrir los PDF. La cuenta de desarrollador es gratis para parti
 
 ## 2. Reservar el nombre
 
-En [Partner Center](https://partner.microsoft.com/dashboard/apps-and-games/overview): **Nueva aplicación** →
-nombre **PDFSIMPLE** → Reservar.
+En [Partner Center](https://partner.microsoft.com/dashboard/apps-and-games/overview): **Nueva aplicación** → tipo **«Aplicación MSIX o PWA»**
+(no «EXE o MSI»: con ese, la Store no firma) → nombre **PDFSIMPLE** → Reservar.
 
-Luego, en el producto: **Administración del producto → Identidad del producto**. Copia en `store\identidad.json`:
+Luego, en el producto: **Administración de productos → Identidad del producto**. Copia en `store\identidad.json`:
 
 | Partner Center                       | identidad.json  |
 |--------------------------------------|-----------------|
@@ -32,7 +28,7 @@ Luego, en el producto: **Administración del producto → Identidad del producto
 .\store\empaquetar.ps1
 ```
 
-Sale `dist\store\PDFSIMPLE_1.0.0.0.msixbundle` (Intel/AMD y ARM dentro). Para cada envío nuevo hay que subir
+Sale `dist\store\PDFSIMPLE_1.0.0.0.msixbundle` (Intel/AMD y ARM dentro; español, francés e inglés). Para cada envío nuevo hay que subir
 `Version` en `identidad.json` (1.0.1.0, 1.0.2.0…; el último número siempre 0).
 
 ## 4. Envío en Partner Center
@@ -64,6 +60,16 @@ Sale `dist\store\PDFSIMPLE_1.0.0.0.msixbundle` (Intel/AMD y ARM dentro). Para ca
 - **Capturas:** al menos una, de 1366×768 o mayor (la app con un PDF abierto, el formulario, la firma).
 - **Logotipo de la Store:** `store\Assets\Square150x150Logo.scale-400.png` (600×600) sirve; si pide 300×300,
   `Square150x150Logo.scale-200.png`.
+
+**Ficha en francés e inglés** (el paquete declara los tres idiomas; se pueden añadir estas fichas):
+
+- **Français:** Lecteur PDF sans publicité et sans compte. Remplissez des formulaires, écrivez n'importe où sur la
+  page, ajoutez votre signature manuscrite (tapée, dessinée ou à partir d'une image) et signez numériquement avec
+  votre certificat (.pfx ou installé dans Windows), avec horodatage. Vérifiez aussi les signatures des PDF que vous
+  recevez. Fonctionne sur les PC Intel, AMD et ARM.
+- **English:** Ad-free PDF reader with no accounts. Fill in forms, type anywhere on the page, add your handwritten
+  signature (typed, drawn or from an image) and sign digitally with your certificate (.pfx or installed in Windows),
+  with a timestamp. It also checks the signatures of the PDFs you receive. Works on Intel, AMD and ARM PCs.
 
 **Enviar para certificación.** Microsoft la revisa (normalmente de 1 a 3 días) y, si la aprueba, se publica.
 

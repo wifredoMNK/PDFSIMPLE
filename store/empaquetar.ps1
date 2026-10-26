@@ -30,29 +30,23 @@ $makepri = Join-Path $herr.DirectoryName 'makepri.exe'
 
 Remove-Item $trabajo, $salida -Recurse -Force -ErrorAction SilentlyContinue
 
-# El programa compilado como PDFSIMPLE, con su obj y bin aparte para no mezclarse con PDFbyWilly.
-$proyecto = Join-Path $raiz 'src\PDFbyWilly\PDFbyWilly.csproj'
-foreach ($rid in 'win-x64', 'win-arm64') {
-    dotnet publish $proyecto -c Release -r $rid --self-contained true -o "$trabajo\publicar\$rid" --disable-build-servers -m:1 `
-        -p:Marca=PDFSIMPLE "-p:BaseIntermediateOutputPath=$trabajo\intermedio\\" "-p:BaseOutputPath=$trabajo\bin\\" `
-        -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:EnableCompressionInSingleFile=true -p:DebugType=embedded
-    if ($LASTEXITCODE -ne 0) { throw "No ha compilado PDFSIMPLE para $rid." }
-}
+# Los mismos .exe que el instalador (publicar.ps1 los deja en dist).
+if (-not (Test-Path "$dist\PDFSIMPLE.exe") -or -not (Test-Path "$dist\PDFSIMPLE-ARM64.exe")) { & (Join-Path $raiz 'publicar.ps1') }
 
 New-Item -ItemType Directory -Force $salida, "$trabajo\msix" | Out-Null
 $plantilla = Get-Content (Join-Path $PSScriptRoot 'AppxManifest.xml') -Raw -Encoding UTF8
 
-foreach ($a in @(@{ Arq = 'x64'; Rid = 'win-x64' }, @{ Arq = 'arm64'; Rid = 'win-arm64' })) {
+foreach ($a in @(@{ Arq = 'x64'; Exe = 'PDFSIMPLE.exe' }, @{ Arq = 'arm64'; Exe = 'PDFSIMPLE-ARM64.exe' })) {
     $dir = Join-Path $trabajo $a.Arq
     New-Item -ItemType Directory -Force $dir | Out-Null
-    Copy-Item "$trabajo\publicar\$($a.Rid)\PDFSIMPLE.exe" "$dir\PDFSIMPLE.exe"
+    Copy-Item "$dist\$($a.Exe)" "$dir\PDFSIMPLE.exe"
     Copy-Item (Join-Path $PSScriptRoot 'Assets') "$dir\Assets" -Recurse
     $manifiesto = $plantilla.Replace('{{Nombre}}', $id.Nombre).Replace('{{Editor}}', $id.Editor).
         Replace('{{EditorVisible}}', $id.EditorVisible).Replace('{{Version}}', $id.Version).Replace('{{Arquitectura}}', $a.Arq)
     [IO.File]::WriteAllText("$dir\AppxManifest.xml", $manifiesto, (New-Object Text.UTF8Encoding $false))
 
     # resources.pri: para que Windows elija el icono de cada tamaño y escala.
-    & $makepri createconfig /cf "$trabajo\priconfig.xml" /dq es-ES /pv 10.0.0 /o | Out-Null
+    & $makepri createconfig /cf "$trabajo\priconfig.xml" /dq es-ES_en-US_fr-FR /pv 10.0.0 /o | Out-Null
     & $makepri new /pr $dir /cf "$trabajo\priconfig.xml" /mn "$dir\AppxManifest.xml" /of "$dir\resources.pri" /o | Out-Null
     if ($LASTEXITCODE -ne 0) { throw "makepri ha fallado ($($a.Arq))." }
 

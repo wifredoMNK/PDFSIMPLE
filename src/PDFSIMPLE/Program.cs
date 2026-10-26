@@ -1,7 +1,7 @@
 using System.Diagnostics;
 using Microsoft.Web.WebView2.Core;
 
-namespace PDFbyWilly;
+namespace PDFSIMPLE;
 
 static class Program
 {
@@ -10,7 +10,7 @@ static class Program
     {
         ApplicationConfiguration.Initialize();
 
-        // Las llama el instalador (PDFbyWilly-Setup.exe) y Configuración → Aplicaciones.
+        // Las llama el instalador (PDFSIMPLE-Setup.exe) y Configuración → Aplicaciones.
         if (args is ["--registrar", ..])
         {
             Instalacion.Registrar(escritorio: args.Contains("--escritorio"));
@@ -25,7 +25,7 @@ static class Program
         if (!HayWebView2())
         {
             // Viene con Windows 10/11 al día; en equipos viejos o recortados hay que instalarlo.
-            if (MessageBox.Show("Para ver los PDF hace falta «Microsoft Edge WebView2», que no está en este equipo. ¿Descargarlo ahora?",
+            if (MessageBox.Show(Idioma.T("faltaWebView2"),
                     Instalacion.Nombre, MessageBoxButtons.YesNo, MessageBoxIcon.Warning) == DialogResult.Yes)
                 Process.Start(new ProcessStartInfo("https://go.microsoft.com/fwlink/p/?LinkId=2124703") { UseShellExecute = true });
             return 1;

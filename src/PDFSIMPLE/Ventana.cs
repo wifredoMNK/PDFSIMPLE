@@ -5,7 +5,7 @@ using System.Text.Json.Nodes;
 using Microsoft.Web.WebView2.Core;
 using Microsoft.Web.WebView2.WinForms;
 
-namespace PDFbyWilly;
+namespace PDFSIMPLE;
 
 /// <summary>
 /// Una ventana por documento. Dentro va el visor de pdf.js (carpeta web/pdfjs), servido desde
@@ -38,7 +38,7 @@ sealed class Ventana : Form
 
     async Task IniciarAsync()
     {
-        var opciones = new CoreWebView2EnvironmentOptions { Language = "es-ES" };
+        var opciones = new CoreWebView2EnvironmentOptions { Language = Idioma.DeNavegador };
         var entorno = await CoreWebView2Environment.CreateAsync(null, Ajustes.CarpetaDatos("WebView2"), opciones);
         await web.EnsureCoreWebView2Async(entorno);
         var cw = web.CoreWebView2;
@@ -115,7 +115,7 @@ sealed class Ventana : Form
     {
         using var dlg = new SaveFileDialog
         {
-            Filter = "Documento PDF (*.pdf)|*.pdf",
+            Filter = Idioma.T("filtroPdf"),
             DefaultExt = "pdf",
             AddExtension = true,
             OverwritePrompt = true,
@@ -145,7 +145,7 @@ sealed class Ventana : Form
         string r = await web.CoreWebView2.ExecuteScriptAsync("window.lector ? lector.hayCambios() : false");
         if (r != "true") { cerrarYa = true; Close(); return; }
 
-        var resp = MessageBox.Show(this, $"¿Guardar los cambios en {Path.GetFileName(ruta)}?", Marca.Nombre,
+        var resp = MessageBox.Show(this, Idioma.T("guardarCambios", Path.GetFileName(ruta)), Marca.Nombre,
             MessageBoxButtons.YesNoCancel, MessageBoxIcon.Question);
         if (resp == DialogResult.Cancel) return;
         if (resp == DialogResult.No) { cerrarYa = true; Close(); return; }
@@ -212,7 +212,7 @@ sealed class Ventana : Form
             // Se engancha lo nuestro sin tocar el viewer.html de pdf.js, para poder actualizarlo tal cual.
             string html = Encoding.UTF8.GetString(contenido).Replace(
                 "<script src=\"viewer.mjs\" type=\"module\"></script>",
-                $"<meta name=\"lector-app\" content=\"{Marca.Nombre}\" />\n  <link rel=\"stylesheet\" href=\"../../lector/lector.css\" />\n  <script src=\"../../lector/lector.js\"></script>\n  <script src=\"viewer.mjs\" type=\"module\"></script>");
+                $"<meta name=\"lector-app\" content=\"{Marca.Nombre}\" />\n  <meta name=\"lector-idioma\" content=\"{Idioma.Actual}\" />\n  <meta name=\"lector-idioma-pdfjs\" content=\"{Idioma.DePdfjs}\" />\n  <link rel=\"stylesheet\" href=\"../../lector/lector.css\" />\n  <script src=\"../../lector/lector.js\"></script>\n  <script src=\"viewer.mjs\" type=\"module\"></script>");
             contenido = Encoding.UTF8.GetBytes(html);
         }
         else if (camino == "pdfjs/web/locale/es-ES/viewer.ftl")
@@ -233,7 +233,7 @@ sealed class Ventana : Form
             {
                 using var dlg = new OpenFileDialog
                 {
-                    Filter = "Documento PDF (*.pdf)|*.pdf|Todos los archivos (*.*)|*.*",
+                    Filter = Idioma.T("filtroPdf") + "|" + Idioma.T("filtroTodos"),
                     InitialDirectory = ruta is null ? Ajustes.Actual.UltimaCarpeta() : Path.GetDirectoryName(ruta),
                 };
                 if (dlg.ShowDialog(this) != DialogResult.OK) return new { cancelado = true };
@@ -303,6 +303,18 @@ sealed class Ventana : Form
             case "predeterminado":
                 Instalacion.AbrirPredeterminadas();
                 return new { ok = true };
+
+            case "idioma":
+            {
+                // Se guarda y se vuelve a cargar el visor, que coge el idioma al arrancar (el documento sigue aquí).
+                string nuevo = JsonNode.Parse(arg ?? "{}")!["idioma"]?.GetValue<string>() ?? "";
+                if (!Idioma.Disponibles.Contains(nuevo)) return new { cancelado = true };
+                Ajustes.Actual.Idioma = nuevo;
+                Ajustes.Actual.Guardar();
+                version++;
+                BeginInvoke(() => web.CoreWebView2.Reload());
+                return new { ok = true };
+            }
 
             case "cerrar":
                 cerrarYa = true;
