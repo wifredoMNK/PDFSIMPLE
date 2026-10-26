@@ -18,28 +18,23 @@ Lector de PDF para Windows, sin publicidad ni cuentas, en **un solo .exe** para 
 .\publicar.ps1
 ```
 
-Deja en `dist`:
+Genera **`PDFbyWilly-Setup.exe`** (en `dist` y en la carpeta del proyecto), que es lo que se reparte:
 
-- `PDFbyWilly.exe`: para casi todos los PC (Intel / AMD; en ARM también funciona, emulado).
-- `PDFbyWilly-ARM64.exe`: para equipos ARM (Snapdragon), más rápido en ellos.
+- Detecta si el equipo es Intel/AMD o ARM (Snapdragon) e instala la versión que toca (las dos van dentro).
+- Pide permiso de administrador una vez: se instala en `C:\Program Files\PDFbyWilly` y se registra para todo el
+  equipo, que es como Windows lo enseña en su lista de programas para los PDF.
+- Opciones: acceso directo en el escritorio y anclar a la barra de tareas (Windows no deja anclar por programa:
+  al terminar dice dónde hacer clic).
+- Al acabar pregunta si se quiere para abrir los PDF y abre la página de Configuración donde se elige
+  (Windows no deja que un programa se ponga solo como predeterminado).
+- Volver a ejecutarlo actualiza. Se desinstala desde Configuración → Aplicaciones → Aplicaciones instaladas.
 
-Llevan .NET dentro: en el otro equipo no hace falta instalar nada (WebView2 ya viene con Windows 10/11; si
-faltara, el programa ofrece descargarlo). No están firmados con certificado de código, así que la primera vez
-Windows puede avisar («Windows protegió su PC» → Más información → Ejecutar de todas formas).
+El instalador es .NET Framework 4.8 (ya viene con Windows 10 y 11) y el programa lleva .NET dentro: no hace falta
+nada más (WebView2 viene con Windows; si faltara, el programa ofrece descargarlo). No están firmados con
+certificado de código, así que Windows puede avisar la primera vez («Más información» → «Ejecutar de todas formas»).
 
-## Al abrirlo la primera vez
-
-Se ofrece a instalarse (para el usuario, sin administrador) en `%LOCALAPPDATA%\Programs\PDFbyWilly`, con:
-
-- acceso en el menú Inicio, y si se marca, en el **escritorio**;
-- **abrir siempre los PDF con él**: Windows no deja que un programa se ponga solo, así que se abre
-  Configuración → Aplicaciones predeterminadas: escribir `.pdf` en el buscador de arriba, pulsar la casilla que
-  sale debajo, elegir PDFbyWilly y «Establecer predeterminado». También desde el menú `>>` del programa;
-- **barra de tareas**: tampoco se puede anclar por programa; al abrirse dice dónde hacer clic.
-
-Un .exe más nuevo, al abrirlo, se ofrece a cambiar el instalado. Se desinstala desde Configuración →
-Aplicaciones → Aplicaciones instaladas.
-
+En `dist` quedan también las versiones sueltas, `PDFbyWilly.exe` (Intel/AMD) y `PDFbyWilly-ARM64.exe`, que se
+pueden usar sin instalar.
 Atajos: Ctrl+O abrir, Ctrl+S guardar, Ctrl+Mayús+S guardar como, Ctrl+F buscar, Ctrl+P imprimir. Arrastrar un PDF
 a la ventana lo abre (en otra ventana si ya hay uno).
 
@@ -52,7 +47,8 @@ a la ventana lo abre (en otra ventana si ya hay uno).
   - `web/lector`: lo nuestro: botones, guardar en disco, colocar la firma, verificador de firmas, traducciones que
     faltan. `Ventana.cs` lo engancha al servir `viewer.html`.
   - `Firmador.cs`: firma con iText 9. `Verificador.cs`: comprueba firmas con lo que trae .NET y la cadena de
-    confianza de Windows. `Instalacion.cs` / `DialogoInstalar.cs`: la autoinstalación.
+    confianza de Windows. `Instalacion.cs`: alta y baja en Windows (`--registrar`, `--desinstalar`).
+- `instalador`: `PDFbyWilly-Setup.exe`.
 - `herramientas/icono.ps1`: dibuja el icono (cuadrado rojo, «PDF» y debajo «BY WILLY»).
 - `pruebas`: `dotnet run` genera un formulario, lo firma dos veces con un certificado de prueba y comprueba que se
   verifican y que un documento manipulado se detecta. `dotnet run -- comprobar archivo.pdf` enseña firmas, campos y

@@ -10,14 +10,10 @@ static class Program
     {
         ApplicationConfiguration.Initialize();
 
-        if (args is ["--instalar", ..])
+        // Las llama el instalador (PDFbyWilly-Setup.exe) y Configuración → Aplicaciones.
+        if (args is ["--registrar", ..])
         {
-            var op = DialogoInstalar.Preguntar();
-            if (op is not null && Instalacion.Instalar(op) && op.Predeterminado)
-            {
-                Instalacion.AbrirPredeterminadas();
-                MessageBox.Show(Instalacion.ComoPredeterminado, Instalacion.Nombre, MessageBoxButtons.OK, MessageBoxIcon.Information);
-            }
+            Instalacion.Registrar(escritorio: args.Contains("--escritorio"));
             return 0;
         }
         if (args is ["--desinstalar", ..])
@@ -25,10 +21,6 @@ static class Program
             Instalacion.Desinstalar();
             return 0;
         }
-
-        string? ruta = args.FirstOrDefault(a => !a.StartsWith("--"));
-        if (ruta is not null) ruta = Path.GetFullPath(ruta);
-        if (Instalacion.Ofrecer(ruta)) return 0;
 
         if (!HayWebView2())
         {
@@ -38,7 +30,9 @@ static class Program
                 Process.Start(new ProcessStartInfo("https://go.microsoft.com/fwlink/p/?LinkId=2124703") { UseShellExecute = true });
             return 1;
         }
-        Application.Run(new Ventana(ruta, avisoAnclar: args.Contains("--aviso-anclar")));
+
+        string? ruta = args.FirstOrDefault(a => !a.StartsWith("--"));
+        Application.Run(new Ventana(ruta is null ? null : Path.GetFullPath(ruta)));
         return 0;
     }
 

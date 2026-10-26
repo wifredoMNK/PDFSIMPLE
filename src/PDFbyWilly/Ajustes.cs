@@ -9,7 +9,6 @@ sealed class Ajustes
     public bool Maximizada { get; set; }
     public string? Carpeta { get; set; }         // la del último documento abierto
     public string? Certificado { get; set; }     // huella del último certificado con que se firmó
-    public bool NoInstalar { get; set; }         // dijo que no a instalarlo: no se vuelve a preguntar
 
     static readonly string Archivo = Path.Combine(CarpetaDatos(), "ajustes.json");
     static Ajustes? actual;
@@ -37,7 +36,6 @@ sealed class Ajustes
             // Con varias ventanas abiertas se relee antes para no pisar lo que haya dejado otra.
             var disco = Leer();
             if (Ventana is not null) { disco.Ventana = Ventana; disco.Maximizada = Maximizada; }
-            disco.NoInstalar |= NoInstalar;
             disco.Carpeta = Carpeta ?? disco.Carpeta;
             disco.Certificado = Certificado ?? disco.Certificado;
             File.WriteAllText(Archivo, JsonSerializer.Serialize(disco));

@@ -24,11 +24,8 @@ sealed class Ventana : Form
     int version;           // cambia en cada carga para que el visor no tire de caché
     bool cerrarYa;
 
-    readonly bool avisoAnclar;
-
-    public Ventana(string? ruta, bool avisoAnclar = false)
+    public Ventana(string? ruta)
     {
-        this.avisoAnclar = avisoAnclar;
         Text = "PDFbyWilly";
         Icon = Recursos.Icono();
         KeyPreview = true;
@@ -61,10 +58,6 @@ sealed class Ventana : Form
             if (!e.Uri.StartsWith(Origen, StringComparison.OrdinalIgnoreCase)) { e.Cancel = true; AbrirFuera(e.Uri); }
         };
         cw.ContainsFullScreenElementChanged += (_, _) => PantallaCompleta(cw.ContainsFullScreenElement);
-        if (avisoAnclar)
-            // Windows no deja anclar por programa: recién instalado, se le dice al usuario dónde hacer clic.
-            cw.NavigationCompleted += async (_, _) => await cw.ExecuteScriptAsync(
-                "lector.aviso('Para anclar PDFbyWilly: clic derecho en su icono de la barra de tareas (abajo) → «Anclar a la barra de tareas».', 30000)");
         cw.Navigate(Visor);
     }
 
@@ -308,9 +301,6 @@ sealed class Ventana : Form
             }
 
             case "predeterminado":
-                // Instalado de antes o ahora mismo, y a la página de Windows donde se elige para .pdf.
-                if (!Instalacion.EsLaInstalada && Instalacion.HaceFalta() && !Instalacion.Instalar(null))
-                    return new { cancelado = true };
                 Instalacion.AbrirPredeterminadas();
                 return new { ok = true };
 
