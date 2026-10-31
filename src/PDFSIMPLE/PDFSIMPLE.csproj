@@ -18,7 +18,7 @@
     <ApplicationIcon>iconos\PDFSIMPLE.ico</ApplicationIcon>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <DefaultItemExcludes>$(DefaultItemExcludes);obj\**;bin\**</DefaultItemExcludes>
-    <Version>1.1.0</Version>
+    <Version>1.2.0</Version>
     <Product>PDFSIMPLE</Product>
     <AssemblyTitle>PDFSIMPLE</AssemblyTitle>
     <Description>Lector de PDF sin publicidad: formularios, texto y firma digital</Description>
