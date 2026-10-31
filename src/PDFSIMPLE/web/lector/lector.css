@@ -22,6 +22,11 @@
           mask-image: url(guardar-como.svg);
 }
 
+#lectorEscanear::before {
+  -webkit-mask-image: url(escanear.svg);
+          mask-image: url(escanear.svg);
+}
+
 #lectorPredeterminado::before {
   -webkit-mask-image: url(predeterminado.svg);
           mask-image: url(predeterminado.svg);

@@ -87,6 +87,35 @@ static class Idioma
         ["noEnVigor"] = ("El certificado no estaba en vigor el {0}", "Le certificat n'était pas valide le {0}", "The certificate was not valid on {0}"),
         ["segunSello"] = (" (según el sello de tiempo).", " (selon l'horodatage).", " (according to the timestamp)."),
 
+        // Escanear
+        ["escanear"] = ("Escanear", "Numériser", "Scan"),
+        ["escaneo"] = ("Escaneo", "Numérisation", "Scan"),
+        ["unaPagina"] = ("1 página escaneada", "1 page numérisée", "1 page scanned"),
+        ["paginas"] = ("{0} páginas escaneadas", "{0} pages numérisées", "{0} pages scanned"),
+        ["siguienteHoja"] = (
+            "Para seguir, pon la siguiente hoja en el cristal o varias en el alimentador y pulsa «Seguir escaneando». «Terminar» guarda el PDF con todo.",
+            "Pour continuer, placez la page suivante sur la vitre ou plusieurs dans le chargeur et cliquez sur « Continuer ». « Terminer » enregistre le PDF.",
+            "To continue, put the next page on the glass or several in the feeder and click “Keep scanning”. “Finish” saves the PDF."),
+        ["seGuardaEn"] = ("Se guarda en:", "Enregistré dans :", "Saved in:"),
+        ["escaner"] = ("Escáner:", "Scanner :", "Scanner:"),
+        ["cambiar"] = ("Cambiar…", "Modifier…", "Change…"),
+        ["seguirEscaneando"] = ("Seguir escaneando", "Continuer", "Keep scanning"),
+        ["terminar"] = ("Terminar", "Terminer", "Finish"),
+        ["descartar"] = ("Descartar", "Abandonner", "Discard"),
+        ["descartarPaginas"] = ("¿Descartar lo escaneado?", "Abandonner les pages numérisées ?", "Discard the scanned pages?"),
+        ["carpetaEscaneos"] = ("Carpeta donde se guardan los documentos escaneados:", "Dossier où enregistrer les documents numérisés :", "Folder where scanned documents are saved:"),
+        ["sinEscaner"] = (
+            "No se encuentra ningún escáner. Comprueba que está encendido y conectado.",
+            "Aucun scanner trouvé. Vérifiez qu'il est allumé et connecté.",
+            "No scanner found. Check that it is on and connected."),
+        ["sinWia"] = ("Este Windows no tiene el servicio de escáneres (WIA).", "Ce Windows n'a pas le service de numérisation (WIA).", "This Windows has no scanner service (WIA)."),
+        ["escanerAtasco"] = ("El papel se ha atascado en el escáner.", "Le papier est coincé dans le scanner.", "The paper is jammed in the scanner."),
+        ["escanerSinPapel"] = ("No hay papel en el alimentador.", "Le chargeur est vide.", "The feeder is empty."),
+        ["escanerApagado"] = ("El escáner no responde: comprueba que está encendido y conectado.", "Le scanner ne répond pas : vérifiez qu'il est allumé et connecté.", "The scanner is not responding: check that it is on and connected."),
+        ["escanerOcupado"] = ("El escáner está ocupado. Prueba otra vez dentro de un momento.", "Le scanner est occupé. Réessayez dans un instant.", "The scanner is busy. Try again in a moment."),
+        ["escanerTapa"] = ("La tapa del escáner está abierta.", "Le capot du scanner est ouvert.", "The scanner cover is open."),
+        ["escanerError"] = ("El escáner ha dado un error: {0}", "Le scanner a renvoyé une erreur : {0}", "The scanner reported an error: {0}"),
+
         // Instalación
         ["documentoPdf"] = ("Documento PDF", "Document PDF", "PDF document"),
         ["descripcion"] = (

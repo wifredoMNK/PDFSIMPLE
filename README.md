@@ -11,6 +11,10 @@ Lector de PDF para Windows, sin publicidad ni cuentas, en español, francés e i
   arrastre en la página o invisible. Se añade al final del PDF, así que las firmas anteriores siguen valiendo.
 - **Comprobar firmas** de los PDF que llegan: el icono ✓ junto a «Firmar» dice si son válidas y si el certificado es
   de una autoridad en la que confía Windows.
+- **Escanear** (botón junto a Guardar como): si hay hojas en el alimentador las pasa todas; si no, la del cristal.
+  Después de cada tanda, «Seguir escaneando» o «Terminar», y al terminar hace un PDF con todo y lo abre. La carpeta se
+  pide la primera vez y se recuerda (se cambia en esa misma ventana). Va con WIA, lo de Windows; si el aparato habla
+  eSCL (casi todas las impresoras de red), se le pregunta a él si hay hojas, porque WIA dice que sí aunque no las haya.
 - **Idioma**: el icono 文A de la barra (español, francés, inglés); la primera vez, el de Windows.
 
 ## La barra

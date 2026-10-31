@@ -243,6 +243,15 @@ sealed class Ventana : Form
                 return new { ok = true, aqui };
             }
 
+            case "escanear":
+            {
+                string? pdf = Escaner.Escanear(this);
+                if (pdf is null) return new { cancelado = true };
+                bool aqui = ruta is null;
+                Abrir(pdf);
+                return new { ok = true, aqui, nombre = Path.GetFileName(pdf) };
+            }
+
             case "guardar":
             {
                 var a = Json.Objeto(arg);

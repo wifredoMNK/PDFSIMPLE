@@ -9,6 +9,8 @@ sealed class Ajustes
     public string? Carpeta { get; set; }         // la del último documento abierto
     public string? Certificado { get; set; }     // huella del último certificado con que se firmó
     public string? Idioma { get; set; }          // es / fr / en; sin elegir, el de Windows
+    public string? CarpetaEscaneos { get; set; } // donde se guardan los PDF escaneados
+    public string? Escaner { get; set; }         // DeviceID de WIA del último escáner
 
     static readonly string Archivo = Path.Combine(CarpetaDatos(), "ajustes.json");
     static Ajustes? actual;
@@ -39,6 +41,8 @@ sealed class Ajustes
             disco.Carpeta = Carpeta ?? disco.Carpeta;
             disco.Certificado = Certificado ?? disco.Certificado;
             disco.Idioma = Idioma ?? disco.Idioma;
+            disco.CarpetaEscaneos = CarpetaEscaneos ?? disco.CarpetaEscaneos;
+            disco.Escaner = Escaner ?? disco.Escaner;
             File.WriteAllText(Archivo, Json.Texto(disco));
         }
         catch { }

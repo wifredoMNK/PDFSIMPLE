@@ -12,6 +12,34 @@ using iText.Signatures;
 using PDFSIMPLE;
 using Rectangle = iText.Kernel.Geom.Rectangle;
 
+// «dotnet run -- escanear archivo.pdf»: una tanda con el escáner de PDFSIMPLE (alimentador o cristal) sin ventanas
+// de seguir o terminar, y el PDF que saldría.
+if (args.Length == 2 && args[0] == "escanear")
+{
+    var paginas = new List<Escaner.Pagina>();
+    Exception? fallo = null;
+    var hilo = new Thread(() =>
+    {
+        try
+        {
+            if (Environment.GetEnvironmentVariable("ESCANER") is { } id) Ajustes.Actual.Escaner = id; // sin guardarlo en los ajustes
+            dynamic? escaner = Escaner.Conectar(null!, elegir: false);
+            if (escaner is null) { Console.WriteLine("sin escáner"); return; }
+            Console.WriteLine("url eSCL: " + Escaner.UrlEscl((object)escaner) + " · hay hojas: " + Escaner.HayHojas((object)escaner));
+            if (args[1] == "-") return; // «escanear -»: solo ver si hay hojas, sin escanear
+            Console.WriteLine("tanda: " + Escaner.Tanda(escaner, paginas));
+        }
+        catch (Exception ex) { fallo = ex; }
+    });
+    hilo.SetApartmentState(ApartmentState.STA); // WIA y su barra de progreso
+    hilo.Start();
+    hilo.Join();
+    if (fallo is not null) { Console.WriteLine(fallo); return 1; }
+    foreach (var p in paginas) Console.WriteLine($"página {p.Ancho:0} × {p.Alto:0} pt, {p.Jpeg.Length / 1024} KB");
+    if (paginas.Count > 0) File.WriteAllBytes(args[1], Escaner.Pdf(paginas));
+    return 0;
+}
+
 // «dotnet run -- comprobar archivo.pdf»: firmas y anotaciones de un PDF cualquiera.
 if (args.Length == 2 && args[0] == "comprobar")
 {

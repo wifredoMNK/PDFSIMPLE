@@ -21,6 +21,10 @@
     abrirCorto: ["Abrir", "Ouvrir", "Open"],
     guardar: ["Guardar (Ctrl+S)", "Enregistrer (Ctrl+S)", "Save (Ctrl+S)"],
     guardarComo: ["Guardar como…", "Enregistrer sous…", "Save as…"],
+    escanear: ["Escanear documento", "Numériser un document", "Scan a document"],
+    escanearCorto: ["Escanear", "Numériser", "Scan"],
+    escaneado: ["Escaneado y guardado: ", "Numérisé et enregistré : ", "Scanned and saved: "],
+    noEscanear: ["No se ha podido escanear: ", "Impossible de numériser : ", "Could not scan: "],
     firmar: ["Firmar", "Signer", "Sign"],
     firmarTitulo: ["Firmar con certificado digital", "Signer avec un certificat numérique", "Sign with a digital certificate"],
     predeterminado: ["Abrir siempre los PDF con {0}…", "Toujours ouvrir les PDF avec {0}…", "Always open PDFs with {0}…"],
@@ -245,7 +249,8 @@
     archivo.id = "lectorArchivo";
     archivo.className = "toolbarHorizontalGroup";
     archivo.append(boton("lectorAbrir", t("abrir"), t("abrirCorto"), abrir), descargar,
-      boton("lectorGuardarComo", t("guardarComo"), t("guardarComo"), () => guardar(true)));
+      boton("lectorGuardarComo", t("guardarComo"), t("guardarComo"), () => guardar(true)),
+      boton("lectorEscanear", t("escanear"), t("escanearCorto"), escanear));
 
     // El panel lateral se abre y se cierra con un triángulo en su borde, no con el botón de la barra.
     const pestaña = document.createElement("button");
@@ -459,6 +464,20 @@
       await api("abrir");
     } catch (e) {
       aviso(t("noAbrir") + e.message, true);
+    }
+  }
+
+  /** El programa escanea, hace el PDF y lo abre: aquí si no había documento, si no en otra ventana. */
+  async function escanear() {
+    if (ocupado) return;
+    ocupado = true;
+    try {
+      const r = await api("escanear");
+      if (r.ok) aviso(t("escaneado") + r.nombre);
+    } catch (e) {
+      aviso(t("noEscanear") + e.message, true);
+    } finally {
+      ocupado = false;
     }
   }
 
