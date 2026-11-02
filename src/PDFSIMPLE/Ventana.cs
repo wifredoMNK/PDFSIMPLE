@@ -252,6 +252,9 @@ sealed class Ventana : Form
                 return new { ok = true, aqui, nombre = Path.GetFileName(pdf) };
             }
 
+            case "fotocopiar":
+                return Escaner.Fotocopiar(this) ? new { ok = true } : new { cancelado = true };
+
             case "guardar":
             {
                 var a = Json.Objeto(arg);

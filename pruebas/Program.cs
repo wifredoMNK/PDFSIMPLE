@@ -12,6 +12,38 @@ using iText.Signatures;
 using PDFSIMPLE;
 using Rectangle = iText.Kernel.Geom.Rectangle;
 
+// «dotnet run -- fotocopiar archivo.pdf»: lo que imprime Fotocopiar (un folio A4 con un marco y una cruz de borde a
+// borde y una cuartilla apaisada, dos copias), con la impresora «Microsoft Print to PDF» a ese archivo, sin diálogos.
+if (args.Length == 2 && args[0] == "fotocopiar")
+{
+    Escaner.Pagina Hoja(float anchoMm, float altoMm)
+    {
+        int ppp = 150, w = (int)(anchoMm / 25.4f * ppp), h = (int)(altoMm / 25.4f * ppp);
+        using var bmp = new Bitmap(w, h);
+        bmp.SetResolution(ppp, ppp);
+        using (var g = Graphics.FromImage(bmp))
+        {
+            g.Clear(Color.White);
+            using var lapiz = new Pen(Color.Black, 6);
+            g.DrawRectangle(lapiz, 3, 3, w - 6, h - 6);
+            g.DrawLine(lapiz, 0, 0, w, h);
+            g.DrawLine(lapiz, w, 0, 0, h);
+        }
+        var ms = new MemoryStream();
+        bmp.Save(ms, System.Drawing.Imaging.ImageFormat.Jpeg);
+        return new Escaner.Pagina(ms.ToArray(), anchoMm / 25.4f * 72, altoMm / 25.4f * 72);
+    }
+    var hojas = new List<Escaner.Pagina> { Hoja(210, 297), Hoja(148, 105) };
+    using var doc = new System.Drawing.Printing.PrintDocument();
+    doc.PrinterSettings.PrinterName = "Microsoft Print to PDF";
+    doc.PrinterSettings.PrintToFile = true;
+    doc.PrinterSettings.PrintFileName = Path.GetFullPath(args[1]);
+    Impresion.Preparar(doc, hojas, 2);
+    doc.Print();
+    Console.WriteLine("impreso en " + args[1]);
+    return 0;
+}
+
 // «dotnet run -- escanear archivo.pdf»: una tanda con el escáner de PDFSIMPLE (alimentador o cristal) sin ventanas
 // de seguir o terminar, y el PDF que saldría.
 if (args.Length == 2 && args[0] == "escanear")

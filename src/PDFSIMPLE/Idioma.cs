@@ -90,6 +90,15 @@ static class Idioma
         // Escanear
         ["escanear"] = ("Escanear", "Numériser", "Scan"),
         ["escaneo"] = ("Escaneo", "Numérisation", "Scan"),
+        ["guardarEscaneo"] = ("Guardar el escaneo", "Enregistrer la numérisation", "Save the scan"),
+        ["fotocopiar"] = ("Fotocopiar", "Photocopier", "Copy"),
+        ["fotocopia"] = ("Fotocopia", "Photocopie", "Copy"),
+        ["imprimir"] = ("Imprimir…", "Imprimer…", "Print…"),
+        ["noImprime"] = ("No se ha podido imprimir: {0}", "Impossible d'imprimer : {0}", "Could not print: {0}"),
+        ["siguienteHojaCopia"] = (
+            "Para seguir, pon la siguiente hoja en el cristal o varias en el alimentador y pulsa «Seguir escaneando». «Imprimir» pregunta la impresora y cuántas copias.",
+            "Pour continuer, placez la page suivante sur la vitre ou plusieurs dans le chargeur et cliquez sur « Continuer ». « Imprimer » demande l'imprimante et le nombre de copies.",
+            "To continue, put the next page on the glass or several in the feeder and click “Keep scanning”. “Print” asks for the printer and how many copies."),
         ["unaPagina"] = ("1 página escaneada", "1 page numérisée", "1 page scanned"),
         ["paginas"] = ("{0} páginas escaneadas", "{0} pages numérisées", "{0} pages scanned"),
         ["siguienteHoja"] = (

@@ -25,6 +25,9 @@
     escanearCorto: ["Escanear", "Numériser", "Scan"],
     escaneado: ["Escaneado y guardado: ", "Numérisé et enregistré : ", "Scanned and saved: "],
     noEscanear: ["No se ha podido escanear: ", "Impossible de numériser : ", "Could not scan: "],
+    fotocopiar: ["Fotocopiar: escanear e imprimir", "Photocopier : numériser et imprimer", "Copy: scan and print"],
+    fotocopiarCorto: ["Fotocopiar", "Photocopier", "Copy"],
+    fotocopiado: ["Enviado a la impresora", "Envoyé à l'imprimante", "Sent to the printer"],
     firmar: ["Firmar", "Signer", "Sign"],
     firmarTitulo: ["Firmar con certificado digital", "Signer avec un certificat numérique", "Sign with a digital certificate"],
     predeterminado: ["Abrir siempre los PDF con {0}…", "Toujours ouvrir les PDF avec {0}…", "Always open PDFs with {0}…"],
@@ -250,7 +253,8 @@
     archivo.className = "toolbarHorizontalGroup";
     archivo.append(boton("lectorAbrir", t("abrir"), t("abrirCorto"), abrir), descargar,
       boton("lectorGuardarComo", t("guardarComo"), t("guardarComo"), () => guardar(true)),
-      boton("lectorEscanear", t("escanear"), t("escanearCorto"), escanear));
+      boton("lectorEscanear", t("escanear"), t("escanearCorto"), escanear),
+      boton("lectorFotocopiar", t("fotocopiar"), t("fotocopiarCorto"), fotocopiar));
 
     // El panel lateral se abre y se cierra con un triángulo en su borde, no con el botón de la barra.
     const pestaña = document.createElement("button");
@@ -474,6 +478,20 @@
     try {
       const r = await api("escanear");
       if (r.ok) aviso(t("escaneado") + r.nombre);
+    } catch (e) {
+      aviso(t("noEscanear") + e.message, true);
+    } finally {
+      ocupado = false;
+    }
+  }
+
+  /** Escanear e imprimir sin guardar nada: el programa pregunta la impresora y cuántas copias. */
+  async function fotocopiar() {
+    if (ocupado) return;
+    ocupado = true;
+    try {
+      const r = await api("fotocopiar");
+      if (r.ok) aviso(t("fotocopiado"));
     } catch (e) {
       aviso(t("noEscanear") + e.message, true);
     } finally {

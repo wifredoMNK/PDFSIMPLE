@@ -27,6 +27,11 @@
           mask-image: url(escanear.svg);
 }
 
+#lectorFotocopiar::before {
+  -webkit-mask-image: url(fotocopiar.svg);
+          mask-image: url(fotocopiar.svg);
+}
+
 #lectorPredeterminado::before {
   -webkit-mask-image: url(predeterminado.svg);
           mask-image: url(predeterminado.svg);
