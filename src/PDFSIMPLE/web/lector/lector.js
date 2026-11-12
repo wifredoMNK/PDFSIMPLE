@@ -682,7 +682,7 @@
     }
   }, true);
 
-  const conPdf = e => [...(e.dataTransfer?.items ?? [])].some(i => i.kind === "file" && (i.type === "application/pdf" || i.type === ""));
+  const conPdf = e => [...(e.dataTransfer?.items ?? [])].some(i => i.kind === "file" && (i.type === "application/pdf" || i.type === "image/svg+xml" || i.type === ""));
   window.addEventListener("dragover", e => {
     if (conPdf(e)) {
       e.preventDefault();
@@ -691,7 +691,7 @@
     }
   }, true);
   window.addEventListener("drop", e => {
-    const archivos = [...(e.dataTransfer?.files ?? [])].filter(f => /\.pdf$/i.test(f.name));
+    const archivos = [...(e.dataTransfer?.files ?? [])].filter(f => /\.(pdf|svgz?)$/i.test(f.name));
     if (!archivos.length) return;
     e.preventDefault();
     e.stopImmediatePropagation();

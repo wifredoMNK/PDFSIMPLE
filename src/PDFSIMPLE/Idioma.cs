@@ -40,6 +40,8 @@ static class Idioma
         // Ventana
         ["guardarCambios"] = ("¿Guardar los cambios en {0}?", "Enregistrer les modifications de {0} ?", "Save changes to {0}?"),
         ["filtroPdf"] = ("Documento PDF (*.pdf)|*.pdf", "Document PDF (*.pdf)|*.pdf", "PDF document (*.pdf)|*.pdf"),
+        ["filtroAbrir"] = ("PDF y SVG (*.pdf;*.svg;*.svgz)|*.pdf;*.svg;*.svgz", "PDF et SVG (*.pdf;*.svg;*.svgz)|*.pdf;*.svg;*.svgz", "PDF and SVG (*.pdf;*.svg;*.svgz)|*.pdf;*.svg;*.svgz"),
+        ["filtroSvg"] = ("Imagen SVG (*.svg;*.svgz)|*.svg;*.svgz", "Image SVG (*.svg;*.svgz)|*.svg;*.svgz", "SVG image (*.svg;*.svgz)|*.svg;*.svgz"),
         ["filtroTodos"] = ("Todos los archivos (*.*)|*.*", "Tous les fichiers (*.*)|*.*", "All files (*.*)|*.*"),
         ["documento"] = ("documento", "document", "document"),
         ["firmado"] = ("firmado", "signe", "signed"),
@@ -127,6 +129,7 @@ static class Idioma
 
         // Instalación
         ["documentoPdf"] = ("Documento PDF", "Document PDF", "PDF document"),
+        ["imagenSvg"] = ("Imagen SVG", "Image SVG", "SVG image"),
         ["descripcion"] = (
             "Lector de PDF sin publicidad: formularios, texto y firma digital",
             "Lecteur PDF sans publicité : formulaires, texte et signature numérique",

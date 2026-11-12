@@ -16,6 +16,7 @@ static class Instalacion
 {
     public static readonly string Nombre = Marca.Nombre;
     static readonly string ProgId = Nombre + ".Documento";
+    static readonly string ProgIdSvg = Nombre + ".Svg";   // los SVG solo se ven
     static string Descripcion => Idioma.T("descripcion");
     static readonly string ClaveDesinstalar = @"Software\Microsoft\Windows\CurrentVersion\Uninstall\" + Nombre;
 
@@ -50,12 +51,23 @@ static class Instalacion
         using (var k = hklm.CreateSubKey(@"Software\Classes\.pdf\OpenWithProgids"))
             k.SetValue(ProgId, Array.Empty<byte>(), RegistryValueKind.None);
 
+        using (var k = hklm.CreateSubKey($@"Software\Classes\{ProgIdSvg}"))
+        {
+            k.SetValue("", Idioma.T("imagenSvg"));
+            k.CreateSubKey("DefaultIcon").SetValue("", icono);
+            k.CreateSubKey(@"shell\open\command").SetValue("", orden);
+        }
+        foreach (var ext in new[] { ".svg", ".svgz" })
+            using (var k = hklm.CreateSubKey($@"Software\Classes\{ext}\OpenWithProgids"))
+                k.SetValue(ProgIdSvg, Array.Empty<byte>(), RegistryValueKind.None);
+
         using (var k = hklm.CreateSubKey($@"Software\Classes\Applications\{Nombre}.exe"))
         {
             k.SetValue("FriendlyAppName", Nombre);
             k.CreateSubKey("DefaultIcon").SetValue("", icono);
             k.CreateSubKey(@"shell\open\command").SetValue("", orden);
-            k.CreateSubKey("SupportedTypes").SetValue(".pdf", "");
+            using var tipos = k.CreateSubKey("SupportedTypes");
+            foreach (var ext in new[] { ".pdf", ".svg", ".svgz" }) tipos.SetValue(ext, "");
         }
 
         using (var k = hklm.CreateSubKey($@"Software\{Nombre}\Capabilities"))
@@ -63,7 +75,10 @@ static class Instalacion
             k.SetValue("ApplicationName", Nombre);
             k.SetValue("ApplicationDescription", Descripcion);
             k.SetValue("ApplicationIcon", icono);
-            k.CreateSubKey("FileAssociations").SetValue(".pdf", ProgId);
+            using var asoc = k.CreateSubKey("FileAssociations");
+            asoc.SetValue(".pdf", ProgId);
+            asoc.SetValue(".svg", ProgIdSvg);
+            asoc.SetValue(".svgz", ProgIdSvg);
         }
         using (var k = hklm.CreateSubKey(@"Software\RegisteredApplications"))
             k.SetValue(Nombre, $@"Software\{Nombre}\Capabilities");
@@ -103,6 +118,10 @@ static class Instalacion
         hklm.DeleteSubKeyTree($@"Software\Classes\{ProgId}", false);
         using (var k = hklm.OpenSubKey(@"Software\Classes\.pdf\OpenWithProgids", true))
             k?.DeleteValue(ProgId, false);
+        hklm.DeleteSubKeyTree($@"Software\Classes\{ProgIdSvg}", false);
+        foreach (var ext in new[] { ".svg", ".svgz" })
+            using (var k = hklm.OpenSubKey($@"Software\Classes\{ext}\OpenWithProgids", true))
+                k?.DeleteValue(ProgIdSvg, false);
         hklm.DeleteSubKeyTree($@"Software\Classes\Applications\{Nombre}.exe", false);
         hklm.DeleteSubKeyTree($@"Software\{Nombre}", false);
         using (var k = hklm.OpenSubKey(@"Software\RegisteredApplications", true))

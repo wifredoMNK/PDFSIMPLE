@@ -9,15 +9,18 @@ namespace PDFSIMPLE;
 /// Una ventana por documento. Dentro va el visor de pdf.js (carpeta web/pdfjs), servido desde
 /// https://visor.local/ por este mismo programa; el visor le pide aquí lo que no puede hacer una
 /// página web: abrir y guardar en disco, firmar con certificado y comprobar firmas.
+/// Un SVG va en su propio visor (web/svg), que solo enseña: sin guardar, firmar ni formularios.
 /// </summary>
 sealed class Ventana : Form
 {
     const string Origen = "https://visor.local/";
     const string Visor = Origen + "pdfjs/web/viewer.html";
+    const string VisorSvg = Origen + "svg/svg.html";
 
     readonly WebView2 web = new() { Dock = DockStyle.Fill };
 
     string? ruta;          // archivo abierto
+    bool esSvg;            // el abierto es un SVG
     byte[]? datos;         // su contenido tal como se cargó
     int version;           // cambia en cada carga para que el visor no tire de caché
     bool cerrarYa;
@@ -59,7 +62,7 @@ sealed class Ventana : Form
             if (!e.Uri.StartsWith(Origen, StringComparison.OrdinalIgnoreCase)) { e.Cancel = true; AbrirFuera(e.Uri); }
         };
         cw.ContainsFullScreenElementChanged += (_, _) => PantallaCompleta(cw.ContainsFullScreenElement);
-        cw.Navigate(Visor);
+        cw.Navigate(esSvg ? VisorSvg : Visor);
     }
 
     FormWindowState estadoPrevio;
@@ -96,6 +99,7 @@ sealed class Ventana : Form
             datos = ms.ToArray();
         }
         ruta = archivo;
+        esSvg = EsSvg(archivo);
         version++;
         Text = $"{Path.GetFileName(archivo)} — {Marca.Nombre}";
         Ajustes.Actual.AnotarReciente(archivo);
@@ -107,10 +111,19 @@ sealed class Ventana : Form
         if (ruta is null)
         {
             Cargar(archivo);
-            _ = web.CoreWebView2?.ExecuteScriptAsync("lector.recargar()");
+            if (esSvg) web.CoreWebView2?.Navigate(VisorSvg);
+            else _ = web.CoreWebView2?.ExecuteScriptAsync("lector.recargar()");
         }
         else Process.Start(Application.ExecutablePath, $"\"{archivo}\"");
     }
+
+    public static bool EsSvg(string archivo) =>
+        archivo.EndsWith(".svg", StringComparison.OrdinalIgnoreCase) || archivo.EndsWith(".svgz", StringComparison.OrdinalIgnoreCase);
+
+    static bool SeAbre(string archivo) => archivo.EndsWith(".pdf", StringComparison.OrdinalIgnoreCase) || EsSvg(archivo);
+
+    /// <summary>Un .svgz es el SVG en gzip: se sirve tal cual, diciendo que va comprimido.</summary>
+    static bool EsGzip(byte[] b) => b.Length > 2 && b[0] == 0x1f && b[1] == 0x8b;
 
     string? PedirRutaGuardar(string sugerido)
     {
@@ -159,7 +172,7 @@ sealed class Ventana : Form
     {
         if (e.TryGetWebMessageAsString() != "soltar" || e.AdditionalObjects is null) return;
         foreach (var o in e.AdditionalObjects)
-            if (o is CoreWebView2File f && f.Path.EndsWith(".pdf", StringComparison.OrdinalIgnoreCase))
+            if (o is CoreWebView2File f && SeAbre(f.Path))
                 Abrir(f.Path);
     }
 
@@ -198,7 +211,7 @@ sealed class Ventana : Form
         if (camino.StartsWith("doc/"))
         {
             e.Response = datos is null ? Respuesta(404, "text/plain", Array.Empty<byte>())
-                                       : Respuesta(200, "application/pdf", datos);
+                                       : Respuesta(200, esSvg ? "image/svg+xml" : "application/pdf", datos, esSvg && EsGzip(datos));
             return;
         }
 
@@ -220,6 +233,10 @@ sealed class Ventana : Form
         {
             contenido = contenido.Concat(Recursos.Leer("web/lector/es-ES.ftl")!).ToArray();
         }
+        else if (camino == "svg/svg.html")
+        {
+            contenido = Encoding.UTF8.GetBytes(Encoding.UTF8.GetString(contenido).Replace("{{idioma}}", Idioma.Actual));
+        }
         e.Response = Respuesta(200, TipoDe(camino), contenido);
     }
 
@@ -234,7 +251,7 @@ sealed class Ventana : Form
             {
                 using var dlg = new OpenFileDialog
                 {
-                    Filter = Idioma.T("filtroPdf") + "|" + Idioma.T("filtroTodos"),
+                    Filter = Idioma.T("filtroAbrir") + "|" + Idioma.T("filtroPdf") + "|" + Idioma.T("filtroSvg") + "|" + Idioma.T("filtroTodos"),
                     InitialDirectory = ruta is null ? Ajustes.Actual.UltimaCarpeta() : Path.GetDirectoryName(ruta),
                 };
                 if (dlg.ShowDialog(this) != DialogResult.OK) return new { cancelado = true };
@@ -342,10 +359,10 @@ sealed class Ventana : Form
     CoreWebView2WebResourceResponse RespuestaJson(object o) =>
         Respuesta(200, "application/json", Json.Bytes(o));
 
-    CoreWebView2WebResourceResponse Respuesta(int estado, string tipo, byte[] cuerpo) =>
+    CoreWebView2WebResourceResponse Respuesta(int estado, string tipo, byte[] cuerpo, bool gzip = false) =>
         web.CoreWebView2.Environment.CreateWebResourceResponse(
             new MemoryStream(cuerpo), estado, estado == 200 ? "OK" : "Not Found",
-            $"Content-Type: {tipo}\r\nContent-Length: {cuerpo.Length}\r\nCache-Control: no-store");
+            $"Content-Type: {tipo}\r\nContent-Length: {cuerpo.Length}\r\nCache-Control: no-store" + (gzip ? "\r\nContent-Encoding: gzip" : ""));
 
     static string TipoDe(string archivo) => Path.GetExtension(archivo).ToLowerInvariant() switch
     {
